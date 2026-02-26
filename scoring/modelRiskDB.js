@@ -1,55 +1,68 @@
-// scoring/modelRiskDB.js – Updated for better matching and real-ish 2026 prices
+// scoring/modelRiskDB.js – Loads external JSON files at runtime
+
 const ModelRiskDB = {
-  issues: {
-    "Volkswagen Golf 7": ["DSG gearbox issues (check mechatronics)", "Water pump failure risk"],
-    "BMW 3 Series F30": ["N20/N47 Timing chain risk", "Steering rack clunk"],
-    "Audi A4 B8": ["EA888 excessive oil consumption", "Multitronic CVT issues"],
-    "BMW X5": ["Turbocharger wear on diesel", "Suspension bushings", "Cooling system potential leaks"],
-    "BMW 5 Series": ["Oil leaks on some engines", "Electronic module faults"],
-    "Mercedes C-Class": ["Rust on older models", "Electronic gremlins"],
-    "Opel Insignia": ["Timing chain stretch on 2.0 CDTI", "Gearbox issues"]
+  issues: {},
+  marketPrices: {},
+  sloveniaPopularity: {},
+
+  // Load all external data once (called automatically)
+  async loadExternalData() {
+    try {
+      // 1. Issues
+      const issuesRes = await fetch(chrome.runtime.getURL('issues.json'));
+      if (!issuesRes.ok) throw new Error(`issues.json: ${issuesRes.status}`);
+      this.issues = await issuesRes.json();
+      console.log(`Issues loaded: ${Object.keys(this.issues).length} models`);
+
+      // 2. Market Prices
+      const pricesRes = await fetch(chrome.runtime.getURL('marketPrices.json'));
+      if (!pricesRes.ok) throw new Error(`marketPrices.json: ${pricesRes.status}`);
+      this.marketPrices = await pricesRes.json();
+      console.log(`Market prices loaded: ${Object.keys(this.marketPrices).length} entries`);
+
+      // 3. Slovenia Popularity
+      const popRes = await fetch(chrome.runtime.getURL('sloveniaPopularity.json'));
+      if (!popRes.ok) throw new Error(`sloveniaPopularity.json: ${popRes.status}`);
+      const popData = await popRes.json();
+
+      // Handle both array and object formats
+      if (Array.isArray(popData)) {
+        popData.forEach(item => {
+          if (item.make && item.model && item.count) {
+            const key = `${item.make.toUpperCase()} ${item.model.toUpperCase().split(' ')[0]}`;
+            this.sloveniaPopularity[key] = item.count;
+          }
+        });
+      } else {
+        // If it's already { "VOLKSWAGEN GOLF": 45872, ... }
+        this.sloveniaPopularity = popData;
+      }
+
+      console.log(`Slovenia popularity loaded: ${Object.keys(this.sloveniaPopularity).length} entries`);
+    } catch (error) {
+      console.error("Failed to load one or more external JSON files:", error);
+    }
   },
 
-  // Mock average used prices (Slovenia/EU 2026 estimates – update periodically from avto.net)
-  marketPrices: {
-    "BMW X5_2024": 83000,      // Realistic avg for xDrive30d M Sport low-km
-    "BMW X5_2023": 68000,
-    "BMW 5 Series_2020": 38000,
-    "BMW 3 Series_2022": 42000,
-    "Volkswagen Golf_2021": 22000,
-    "Audi A4_2022": 35000,
-    "Mercedes C-Class_2023": 48000,
-    "Opel Insignia_2019": 15000
-    // Add more: "Make CoreModel_year": avg_price
-  },
-
-  // Improved getIssues: flexible key (ignores "serija", takes first model word)
+  // Getters (same as before)
   getIssues(make, model) {
     if (!make || !model) return null;
-    const modelCore = model.split(' ')[0].replace(/[^a-zA-Z0-9]/g, ''); // e.g. "X5" from "serija X5 xDrive..."
-    const keys = [
-      `${make} ${modelCore}`,
-      `${make} ${model.split(' ')[0]}`,
-      make
-    ];
-    for (const key of keys) {
-      if (this.issues[key]) return this.issues[key];
-    }
-    return null;
+    const key = `${make} ${model.split(' ')[0]}`.trim();
+    return this.issues[key] || null;
   },
 
-  // Improved getMarketPrice: flexible matching
   getMarketPrice(make, model, year) {
     if (!make || !model || !year) return null;
-    const modelCore = model.split(' ')[0].replace(/[^a-zA-Z0-9]/g, ''); // "X5"
-    const possibleKeys = [
-      `${make} ${modelCore}_${year}`,
-      `${make} ${model.split(' ')[0]}_${year}`,
-      `${make} ${model}_${year}`
-    ];
-    for (const key of possibleKeys) {
-      if (this.marketPrices[key]) return this.marketPrices[key];
-    }
-    return null;
+    const key = `${make} ${model.split(' ')[0]}_${year}`;
+    return this.marketPrices[key] || null;
+  },
+
+  getPopularityCount(make, model) {
+    if (!make || !model) return 0;
+    const key = `${make.toUpperCase()} ${model.toUpperCase().split(' ')[0]}`;
+    return this.sloveniaPopularity[key] || 0;
   }
 };
+
+// Automatically load data when the content script runs
+ModelRiskDB.loadExternalData();

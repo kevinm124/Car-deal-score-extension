@@ -20,5 +20,15 @@
       "run_at": "document_end"
     }
   ],
+  "web_accessible_resources": [
+  {
+    "resources": [
+      "issues.json",
+      "marketPrices.json",
+      "sloveniaPopularity.json"
+    ],
+    "matches": ["https://www.avto.net/*"]
+  }
+  ],
   "permissions": ["storage"]
 }
