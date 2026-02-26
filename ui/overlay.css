@@ -1,0 +1,68 @@
+#car-deal-overlay {
+  position: fixed !important;
+  bottom: 30px !important;
+  right: 30px !important;
+  width: 280px;
+  background: #1e1e1e;
+  color: white;
+  font-family: system-ui, sans-serif;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  z-index: 100000 !important;
+  border: 1px solid #444;
+}
+
+#car-deal-overlay h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+#car-deal-overlay .score {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+#car-deal-overlay .verdict {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+#car-deal-overlay.safe .score { color: #4caf50; }
+#car-deal-overlay.caution .score { color: #ffeb3b; }
+#car-deal-overlay.risky .score { color: #f44336; }
+
+#car-deal-overlay button {
+  background: #444;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 6px 6px 0 0;
+  font-size: 13px;
+}
+
+#car-deal-overlay button:hover {
+  background: #666;
+}
+
+#car-deal-overlay ul {
+  padding-left: 22px;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+#car-deal-overlay .details p {
+  font-size: 13px;
+  margin: 6px 0;
+  opacity: 0.9;
+}
+
+#car-deal-overlay .disclaimer {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 12px;
+  text-align: center;
+}

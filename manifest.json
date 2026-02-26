@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Car Deal Safety Score",
+  "version": "0.2.1",
+  "description": "Analyzes avto.net car listings and shows deal quality score",
+  "content_scripts": [
+    {
+      "matches": ["https://www.avto.net/Ads/details.asp*"],
+      "js": [
+        "scoring/modelRiskDB.js",
+        "scoring/priceRules.js",
+        "scoring/mileageRules.js",
+        "scoring/ownershipRules.js",
+        "scoring/scoreEngine.js",
+        "ui/overlay.js",
+        "content.js"
+      ],
+      "css": ["ui/overlay.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": ["storage"]
+}
