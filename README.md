@@ -1,5 +1,5 @@
 # Car Deal Safety Score Browser Extension
-
+![Extension](Assets/content.png)
 ## What It Does
 This Chrome/Edge extension analyzes used car listings on avto.net and overlays a "Deal Quality Score" to help you assess if it's a safe buy. It uses only data visible on the page (price, year, mileage, owners, etc.) and applies heuristic rules to compute a score from 0-100.
 
