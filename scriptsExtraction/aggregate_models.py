@@ -3,7 +3,7 @@ import json
 from collections import defaultdict
 
 # Load your JSON file (change name if different)
-with open('slovenia_car_db.json', 'r', encoding='utf-8') as f:
+with open('slovenia_car_db_final.json', 'r', encoding='utf-8') as f:
     data = json.load(f)
 
 # Aggregate: make + core_model → total count
@@ -32,7 +32,7 @@ for key, cnt in sorted_agg[:5000]:  # limit to top 5000 if too many
     })
 
 # Save as new JSON
-with open('aggregated_car_db.json', 'w', encoding='utf-8') as f:
+with open('aggregated_car_db2.json', 'w', encoding='utf-8') as f:
     json.dump(final_list, f, ensure_ascii=False, indent=2)
 
 print(f"Saved {len(final_list)} unique make-model entries")

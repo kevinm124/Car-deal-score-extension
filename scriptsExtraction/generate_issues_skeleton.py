@@ -1,7 +1,7 @@
 import json
 
 # Change to your file name
-input_file = "slovenia_car_db.json"   # or "popularity_dict.json"
+input_file = "slovenia_car_db_final.json"   # or "popularity_dict.json"
 
 with open(input_file, 'r', encoding='utf-8') as f:
     data = json.load(f)
@@ -23,7 +23,7 @@ for key in sorted(popularity.keys()):
     issues_skeleton[key] = []
 
 # Save
-with open('issues_skeleton.json', 'w', encoding='utf-8') as f:
+with open('issues_skeleton2.json', 'w', encoding='utf-8') as f:
     json.dump(issues_skeleton, f, ensure_ascii=False, indent=2)
 
 print(f"Generated {len(issues_skeleton)} empty issues entries")

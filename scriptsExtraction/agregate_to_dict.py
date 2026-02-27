@@ -5,7 +5,7 @@ import json
 from collections import defaultdict
 
 # Change this to your actual JSON file name
-input_file = "slovenia_car_db.json"  # ← your 25,000-line file
+input_file = "slovenia_car_db_final.json"  # ← your 25,000-line file
 
 with open(input_file, 'r', encoding='utf-8') as f:
     data = json.load(f)
@@ -34,7 +34,7 @@ for key, total_count in sorted_agg:
     popularity_dict[key] = total_count
 
 # Save as JSON (easy to copy-paste)
-output_file = "popularity_dict.json"
+output_file = "popularity_dict2.json"
 with open(output_file, 'w', encoding='utf-8') as f:
     json.dump(popularity_dict, f, ensure_ascii=False, indent=2)
 
