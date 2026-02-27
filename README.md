@@ -32,10 +32,10 @@ This score is informational only, based on heuristics and visible data. It is no
 ## Delete after complete
 All databases from excell delte them these are 
 
-agregate_models.py
-agregated_car_db.json
-agregate_to_dic.py
-popularity_dict.json
-slovenia_car_db.json
-vozila_to_json.py
-generate_issues_skeleton.py
+- agregate_models.py
+- agregated_car_db.json
+- agregate_to_dic.py
+- popularity_dict.json
+- slovenia_car_db.json
+- vozila_to_json.py
+- generate_issues_skeleton.py
