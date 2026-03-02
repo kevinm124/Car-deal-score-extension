@@ -1,6 +1,8 @@
 // scoring/scoreEngine.js
 const ScoreEngine = {
   evaluate(car) {
+    console.log(`ScoreEngine.evaluate called with:`, car);
+    
     let score = 100;
     const positives = [];
     const warnings = [];

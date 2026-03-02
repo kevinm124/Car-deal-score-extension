@@ -100,20 +100,35 @@ async function runScoring() {
   // Additional extraction helpers for avto.net specific structures
   function extractFromDetailsTable() {
     const data = {};
+    const currentYear = new Date().getFullYear();
+    
+    // Helper to validate year (must be reasonable car year: 1990-current year)
+    function isValidCarYear(yearStr) {
+      const year = parseInt(yearStr, 10);
+      return !isNaN(year) && year >= 1990 && year <= currentYear;
+    }
     
     // Try avto.net specific table structure
-    const detailRows = document.querySelectorAll('.details-table tr, .specifications tr, .car-details tr, .atributi tr, table tbody tr');
+    const detailRows = document.querySelectorAll('.details-table tr, .specifications tr, .car-details tr, .atributi tr, table tbody tr, table tr');
     detailRows.forEach(row => {
       const cells = row.querySelectorAll('td, th');
       if (cells.length >= 2) {
         const label = (cells[0].innerText || '').trim().toLowerCase();
         const value = (cells[1].innerText || '').trim();
         
-        if (label.includes('letnik') || label.includes('leto') || label.includes('registr')) {
-          data.year = value;
+        console.log(`extractFromDetailsTable: Found label="${label}", value="${value}"`);
+        
+        // More specific year matching - avoid matching registration dates
+        if ((label === 'letnik' || label.includes('leto proizvodnje')) && !label.includes('registr')) {
+          const yearMatch = value.match(/\d{4}/);
+          if (yearMatch && isValidCarYear(yearMatch[0])) {
+            data.year = yearMatch[0];
+            console.log(`extractFromDetailsTable: Set year = ${yearMatch[0]}`);
+          }
         }
         if (label.includes('km') || label.includes('kilomet') || label.includes('prevoz')) {
           data.mileage = value;
+          console.log(`extractFromDetailsTable: Set mileage = ${value}`);
         }
         if (label.includes('lastnik')) {
           data.owners = value;
@@ -132,8 +147,11 @@ async function runScoring() {
         lastLabel = (item.innerText || '').trim().toLowerCase();
       } else if (item.tagName === 'DD' && lastLabel) {
         const value = (item.innerText || '').trim();
-        if (lastLabel.includes('letnik') || lastLabel.includes('leto')) {
-          data.year = value;
+        if ((lastLabel === 'letnik' || lastLabel.includes('leto proizvodnje')) && !lastLabel.includes('registr')) {
+          const yearMatch = value.match(/\d{4}/);
+          if (yearMatch && isValidCarYear(yearMatch[0])) {
+            data.year = yearMatch[0];
+          }
         }
         if (lastLabel.includes('km') || lastLabel.includes('kilomet')) {
           data.mileage = value;
@@ -150,8 +168,11 @@ async function runScoring() {
         const label = (labelEl.innerText || '').trim().toLowerCase();
         const value = (valueEl.innerText || '').trim();
         
-        if (label.includes('letnik') || label.includes('leto') || label.includes('registr')) {
-          data.year = value;
+        if ((label === 'letnik' || label.includes('leto proizvodnje')) && !label.includes('registr')) {
+          const yearMatch = value.match(/\d{4}/);
+          if (yearMatch && isValidCarYear(yearMatch[0])) {
+            data.year = yearMatch[0];
+          }
         }
         if (label.includes('km') || label.includes('kilomet') || label.includes('prevoz')) {
           data.mileage = value;
@@ -159,10 +180,27 @@ async function runScoring() {
       }
     });
     
+    // Last resort: search entire page text for year patterns
+    if (!data.year) {
+      const pageText = document.body.innerText;
+      // Look for "Letnik: 2008" or "Leto proizvodnje: 2008" patterns
+      const yearMatch = pageText.match(/(?:letnik|leto\s*proizvodnje)[:\s]*(\d{4})/i);
+      if (yearMatch && isValidCarYear(yearMatch[1])) {
+        data.year = yearMatch[1];
+        console.log(`extractFromDetailsTable: Found year via regex = ${yearMatch[1]}`);
+      }
+    }
+    
     return data;
   }
   
   const detailsData = extractFromDetailsTable();
+  console.log("extractFromDetailsTable result:", detailsData);
+  
+  // Debug: log what we found for year
+  const yearFromTable = getTableValue(["Leto proizvodnje", "Letnik", "Prva registracija", "First registration", "Leto"]);
+  const yearFromLoose = looseSearch(["Letnik", "Leto proizvodnje", "registracija"]);
+  console.log(`Year extraction debug: table=${yearFromTable}, detailsData=${detailsData.year}, loose=${yearFromLoose}`);
   
   const carData = {
     make,
@@ -172,9 +210,9 @@ async function runScoring() {
       looseSearch(["Cena", "€", "prodajna cena"])
     ),
     year: cleanNumber(
-      getTableValue(["Leto proizvodnje", "Letnik", "Prva registracija", "First registration", "Leto"]) ||
+      yearFromTable ||
       detailsData.year ||
-      looseSearch(["Letnik", "Leto", "registracija"])
+      yearFromLoose
     ),
     mileage: cleanNumber(
       getTableValue(["Prevoženi km", "Prevoženih km", "Prevoženi", "Kilometri", "Prevoženo"]) ||
