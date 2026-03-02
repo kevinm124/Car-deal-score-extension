@@ -1,13 +1,25 @@
 // scoring/mileageRules.js
 const MileageRules = {
   evaluate(mileage, year, fuel, scoreState) {
-    if (!mileage || !year) return;
+    console.log(`MileageRules.evaluate called with: mileage=${mileage}, year=${year}, fuel=${fuel}`);
+    
+    if (!mileage || !year) {
+      console.log(`MileageRules: Missing mileage or year - cannot calculate km/year`);
+      return;
+    }
 
-    const age = new Date().getFullYear() - year;
-    if (age <= 0) return;
-
-    const kmPerYear = Math.round(mileage / age);
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - year;
+    console.log(`MileageRules: Car age = ${age} years (current year: ${currentYear})`);
+    
+    if (age <= 0) {
+      console.log(`MileageRules: Age is 0 or negative, using 1 for calculation`);
+    }
+    
+    const effectiveAge = Math.max(age, 1); // Use at least 1 year to avoid division issues
+    const kmPerYear = Math.round(mileage / effectiveAge);
     scoreState.details.kmPerYear = kmPerYear;
+    console.log(`MileageRules: Calculated kmPerYear = ${kmPerYear}`);
 
     if (kmPerYear > 30000) {
       scoreState.score -= 15;

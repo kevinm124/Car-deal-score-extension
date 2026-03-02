@@ -97,27 +97,98 @@ async function runScoring() {
     }
   }
 
+  // Additional extraction helpers for avto.net specific structures
+  function extractFromDetailsTable() {
+    const data = {};
+    
+    // Try avto.net specific table structure
+    const detailRows = document.querySelectorAll('.details-table tr, .specifications tr, .car-details tr, .atributi tr, table tbody tr');
+    detailRows.forEach(row => {
+      const cells = row.querySelectorAll('td, th');
+      if (cells.length >= 2) {
+        const label = (cells[0].innerText || '').trim().toLowerCase();
+        const value = (cells[1].innerText || '').trim();
+        
+        if (label.includes('letnik') || label.includes('leto') || label.includes('registr')) {
+          data.year = value;
+        }
+        if (label.includes('km') || label.includes('kilomet') || label.includes('prevoz')) {
+          data.mileage = value;
+        }
+        if (label.includes('lastnik')) {
+          data.owners = value;
+        }
+        if (label.includes('gorivo')) {
+          data.fuel = value;
+        }
+      }
+    });
+    
+    // Also try definition lists
+    const dlItems = document.querySelectorAll('dl dt, dl dd');
+    let lastLabel = '';
+    dlItems.forEach((item, index) => {
+      if (item.tagName === 'DT') {
+        lastLabel = (item.innerText || '').trim().toLowerCase();
+      } else if (item.tagName === 'DD' && lastLabel) {
+        const value = (item.innerText || '').trim();
+        if (lastLabel.includes('letnik') || lastLabel.includes('leto')) {
+          data.year = value;
+        }
+        if (lastLabel.includes('km') || lastLabel.includes('kilomet')) {
+          data.mileage = value;
+        }
+      }
+    });
+    
+    // Try div-based layouts (common on modern avto.net)
+    const detailDivs = document.querySelectorAll('.detail-item, .spec-item, .car-info-item, [class*="detail"], [class*="spec"]');
+    detailDivs.forEach(div => {
+      const labelEl = div.querySelector('.label, .key, .title, dt, strong, b');
+      const valueEl = div.querySelector('.value, dd, span:not(.label)');
+      if (labelEl && valueEl) {
+        const label = (labelEl.innerText || '').trim().toLowerCase();
+        const value = (valueEl.innerText || '').trim();
+        
+        if (label.includes('letnik') || label.includes('leto') || label.includes('registr')) {
+          data.year = value;
+        }
+        if (label.includes('km') || label.includes('kilomet') || label.includes('prevoz')) {
+          data.mileage = value;
+        }
+      }
+    });
+    
+    return data;
+  }
+  
+  const detailsData = extractFromDetailsTable();
+  
   const carData = {
     make,
     model,
     price: cleanNumber(
-      document.querySelector('.price, strong.price, .cijena-big, [class*="cena"], #cijena')?.innerText ||
+      document.querySelector('.price, strong.price, .cijena-big, [class*="cena"], #cijena, .price-value, [itemprop="price"]')?.innerText ||
       looseSearch(["Cena", "€", "prodajna cena"])
     ),
     year: cleanNumber(
       getTableValue(["Leto proizvodnje", "Letnik", "Prva registracija", "First registration", "Leto"]) ||
+      detailsData.year ||
       looseSearch(["Letnik", "Leto", "registracija"])
     ),
     mileage: cleanNumber(
       getTableValue(["Prevoženi km", "Prevoženih km", "Prevoženi", "Kilometri", "Prevoženo"]) ||
+      detailsData.mileage ||
       looseSearch(["Prevoženi", "Prevoženih", "km"])
     ),
     owners: cleanNumber(
       getTableValue(["Lastnikov", "Število lastnikov", "Lastnik", "Prejšnjih lastnikov", "Št. lastnikov"]) ||
+      detailsData.owners ||
       looseSearch(["Lastnikov", "lastnik"])
     ),
-    fuel: 
+    fuel:
       (getTableValue(["Gorivo", "Vrsta goriva", "Tip goriva", "Motor", "Pogon"]) ||
+      detailsData.fuel ||
       looseSearch(["Gorivo", "dizel", "bencin", "hibrid", "električni"]))?.toLowerCase().replace(/motor|avtomatski/gi, '').trim() || null,
     description: document.querySelector(".opis, .description, .ad-text, .body-text, [itemprop='description']")?.innerText.trim() || null
   };
