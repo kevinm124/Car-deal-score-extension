@@ -15,6 +15,8 @@ const ScoreEngine = {
     OwnershipRules.evaluate(car.owners, scoreState);
 
     const modelIssues = ModelRiskDB.getIssues(car.make, car.model);
+    console.log(`ScoreEngine: modelIssues for ${car.make} ${car.model}:`, modelIssues);
+    
     if (modelIssues && modelIssues.length > 0) {
       modelIssues.forEach(issue => {
         scoreState.score -= 5;
