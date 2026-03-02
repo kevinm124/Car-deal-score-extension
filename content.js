@@ -9,6 +9,32 @@ function cleanNumber(str) {
   return cleaned ? parseInt(cleaned, 10) : null;
 }
 
+// Extract a valid4-digit year (1990-current year) from a string
+function extractYear(str) {
+  if (!str) return null;
+  const currentYear = new Date().getFullYear();
+  
+  // First, try to find a4-digit number that looks like a year
+  const yearMatch = str.match(/\b(19\d{2}|20[0-2]\d)\b/);
+  if (yearMatch) {
+    const year = parseInt(yearMatch[0], 10);
+    if (year >= 1990 && year <= currentYear) {
+      return year;
+    }
+  }
+  
+  // Fallback: extract all digits and take first4 if valid
+  const digits = str.replace(/[^\d]/g, '');
+  if (digits.length >= 4) {
+    const potentialYear = parseInt(digits.substring(0, 4), 10);
+    if (potentialYear >= 1990 && potentialYear <= currentYear) {
+      return potentialYear;
+    }
+  }
+  
+  return null;
+}
+
 function getTableValue(labelTexts) {
   const labels = Array.isArray(labelTexts) ? labelTexts : [labelTexts];
   const rows = document.querySelectorAll('table tr, .spec-row, .detail-row, .car-specs tr');
@@ -209,7 +235,7 @@ async function runScoring() {
       document.querySelector('.price, strong.price, .cijena-big, [class*="cena"], #cijena, .price-value, [itemprop="price"]')?.innerText ||
       looseSearch(["Cena", "€", "prodajna cena"])
     ),
-    year: cleanNumber(
+    year: extractYear(
       yearFromTable ||
       detailsData.year ||
       yearFromLoose

@@ -61,11 +61,60 @@ const ModelRiskDB = {
     return this.loadPromise;
   },
 
-  // Getters (same as before)
+  // Getters
   getIssues(make, model) {
-    if (!make || !model) return null;
-    const key = `${make} ${model.split(' ')[0]}`.trim();
-    return this.issues[key] || null;
+    if (!make || !model) {
+      console.log(`getIssues: Missing make or model`);
+      return null;
+    }
+    
+    const makeUpper = make.toUpperCase().trim();
+    const modelUpper = model.toUpperCase().trim();
+    const modelFirstWord = modelUpper.split(' ')[0];
+    
+    console.log(`getIssues: Looking for issues for ${makeUpper} ${modelUpper}`);
+    
+    // Try exact match first
+    const exactKey = `${makeUpper} ${modelUpper}`;
+    if (this.issues[exactKey]) {
+      console.log(`getIssues: Found exact match for ${exactKey}`);
+      return this.issues[exactKey];
+    }
+    
+    // Try with first word of model
+    const firstWordKey = `${makeUpper} ${modelFirstWord}`;
+    if (this.issues[firstWordKey]) {
+      console.log(`getIssues: Found match with first word: ${firstWordKey}`);
+      return this.issues[firstWordKey];
+    }
+    
+    // Fuzzy search: find keys that contain both make and model
+    for (const key of Object.keys(this.issues)) {
+      const keyUpper = key.toUpperCase();
+      // Check if key starts with make and contains model
+      if (keyUpper.startsWith(makeUpper) && keyUpper.includes(modelFirstWord)) {
+        console.log(`getIssues: Found fuzzy match: ${key}`);
+        return this.issues[key];
+      }
+    }
+    
+    // Try partial model match (e.g., "Golf" matches "Golf7")
+    for (const key of Object.keys(this.issues)) {
+      const keyUpper = key.toUpperCase();
+      if (keyUpper.startsWith(makeUpper)) {
+        // Check if any word from model appears in the key
+        const modelWords = modelUpper.split(' ');
+        for (const word of modelWords) {
+          if (word.length >=3 && keyUpper.includes(word)) {
+            console.log(`getIssues: Found partial match: ${key}`);
+            return this.issues[key];
+          }
+        }
+      }
+    }
+    
+    console.log(`getIssues: No issues found for ${makeUpper} ${modelUpper}`);
+    return null;
   },
 
   getMarketPrice(make, model, year) {
