@@ -1,12 +1,16 @@
 // scoring/priceRules.js
 const PriceRules = {
   evaluate(price, make, model, year, scoreState) {
+    console.log(`PriceRules.evaluate called with: price=${price}, make=${make}, model=${model}, year=${year}`);
+    
     if (!price) {
       scoreState.warnings.push("Price missing.");
       return;
     }
 
     const avgPrice = ModelRiskDB.getMarketPrice(make, model, year);
+    console.log(`PriceRules: avgPrice from DB = ${avgPrice}`);
+    
     if (!avgPrice) {
       scoreState.warnings.push("Market price comparison unavailable.");
       return;

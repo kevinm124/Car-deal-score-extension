@@ -47,7 +47,12 @@ function looseSearch(labelTexts) {
 // Extract car data
 // =======================
 
-setTimeout(() => {
+async function runScoring() {
+  // Wait for ModelRiskDB to load external data
+  if (ModelRiskDB.loadExternalData) {
+    await ModelRiskDB.loadExternalData();
+  }
+  
   // Try multiple title selectors – avto.net sometimes uses different classes
   const titleEl = document.querySelector("h1, .title-main, .ad-title, [itemprop='name'], .oglas-naslov, h1[itemprop='name']");
   let title = titleEl ? titleEl.innerText.trim() : document.title.split(" - ")[0] || "";
@@ -186,6 +191,11 @@ setTimeout(() => {
       document.body.appendChild(errorOverlay);
     }
   }
+}
+
+// Run scoring after page loads with a delay to ensure DOM is ready
+setTimeout(() => {
+  runScoring();
 }, 1500);
 
 function getRiskClass(score) {
