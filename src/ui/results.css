@@ -1,0 +1,61 @@
+/* src/ui/results.css – badges and toolbar on avto.net results pages (prefixed .cds-). */
+.cds-badge {
+  position: absolute; top: 10px; left: 10px; z-index: 5;
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 7px 3px 3px; border-radius: 999px;
+  background: rgba(17, 20, 28, .9); color: #fff;
+  font: 700 12px/1 Inter, "Segoe UI", system-ui, sans-serif;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+  cursor: default;
+}
+.cds-badge .cds-score {
+  min-width: 26px; height: 26px; padding: 0 4px; border-radius: 999px;
+  display: grid; place-items: center; font-size: 12.5px; background: var(--cds-tone);
+}
+.cds-great { --cds-tone: #22c55e; }
+.cds-good { --cds-tone: #84cc16; }
+.cds-fair { --cds-tone: #eab308; }
+.cds-caution { --cds-tone: #f97316; }
+.cds-risky { --cds-tone: #ef4444; }
+.cds-delta, .cds-drop { font-size: 11px; }
+.cds-down { color: #4ade80; }
+.cds-up { color: #fca5a5; }
+.cds-star { color: #fbbf24; }
+
+.cds-tip {
+  display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 240px;
+  padding: 10px 12px; border-radius: 12px; background: #11141c; color: #e5e7eb;
+  font: 500 12px/1.5 Inter, "Segoe UI", system-ui, sans-serif;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .45); white-space: normal;
+}
+.cds-tip b { color: #fff; }
+.cds-tip i { color: #9aa3b5; font-style: normal; }
+.cds-badge:hover .cds-tip { display: block; }
+.cds-warn { color: #fdba74; margin-top: 4px; }
+.cds-cats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, .1); color: #9aa3b5; }
+.cds-hint { margin-top: 6px; color: #6b7489; font-size: 11px; }
+
+.GO-Results-Row.cds-dim { opacity: .35; filter: grayscale(.6); transition: opacity .2s; }
+.GO-Results-Row.cds-dim:hover { opacity: 1; filter: none; }
+.GO-Results-Row.cds-flash { animation: cds-flash 1.6s ease; }
+@keyframes cds-flash { 0%, 60% { box-shadow: 0 0 0 4px #6c8cff; } 100% { box-shadow: none; } }
+
+.cds-bar {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 2147483000;
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 8px 7px 8px; border-radius: 999px;
+  background: rgba(17, 20, 28, .92); color: #e5e7eb; backdrop-filter: blur(12px);
+  font: 500 13px/1 Inter, "Segoe UI", system-ui, sans-serif;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .4);
+}
+.cds-bar b { color: #fff; }
+.cds-logo { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; background: linear-gradient(135deg, #6c8cff, #9b6cff); }
+.cds-bar button {
+  border: 0; border-radius: 999px; padding: 7px 12px; cursor: pointer;
+  background: rgba(255, 255, 255, .1); color: #fff; font: 600 12.5px/1 Inter, "Segoe UI", system-ui, sans-serif;
+}
+.cds-bar button:hover { background: rgba(108, 140, 255, .45); }
+.cds-bar button[data-cds="close"] { padding: 7px 10px; background: transparent; color: #9aa3b5; }
+
+/* avto.net gives every row z-index:1, so lift the hovered row above its neighbours for the tooltip. */
+.GO-Results-Row:has(.cds-badge:hover) { z-index: 20 !important; }

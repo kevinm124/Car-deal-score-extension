@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DealScore</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <div class="logo">D</div>
+    <div>
+      <div class="name">DealScore</div>
+      <div class="sub" id="stats">avto.net deal analyzer</div>
+    </div>
+    <div class="spacer"></div>
+    <label class="switch" title="Enable / disable DealScore">
+      <input type="checkbox" id="enabled"><span></span>
+    </label>
+  </header>
+
+  <nav class="tabs">
+    <button data-page="saved" class="active">Saved <span id="saved-count" class="count"></span></button>
+    <button data-page="compare">Compare</button>
+    <button data-page="recent">Recent</button>
+    <button data-page="settings">Settings</button>
+  </nav>
+
+  <main id="main"></main>
+
+  <script src="../lib/util.js"></script>
+  <script src="../lib/data.js"></script>
+  <script src="../lib/store.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
