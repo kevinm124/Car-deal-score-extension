@@ -11,6 +11,7 @@ CDS.store = (() => {
     profile: 'balanced',
     dimBelow: 0,                 // dim result rows scoring below this (0 = off)
     learnPrices: true,           // remember prices seen on results pages
+    euCompare: true,             // compare with EU listings on AutoScout24
     kmPerYear: 15000,
     petrolPrice: 1.45,
     dieselPrice: 1.50,

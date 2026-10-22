@@ -56,7 +56,7 @@
         <div class="cds-cats">${r.categories.map(c => `<span>${esc(c.label.split(' ')[0])} <b>${c.score}</b></span>`).join('')}</div>
         <div class="cds-hint">Open the listing for the full report</div>
       </div>`;
-    const host = row.querySelector('.GO-Results-Photo') || row;
+    const host = row.querySelector('.GO-Results-Photo, .GO-Results-Top-Photo') || row;
     host.style.position = 'relative';
     host.appendChild(el);
     row.classList.toggle('cds-dim', settings.dimBelow > 0 && r.score < settings.dimBelow);

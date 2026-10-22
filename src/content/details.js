@@ -4,7 +4,7 @@
 
   const TABS = [
     { id: 'overview', label: 'Overview' },
-    { id: 'issues', label: 'Issues' },
+    { id: 'issues', label: 'Known issues' },
     { id: 'inspect', label: 'Checklist' },
     { id: 'negotiate', label: 'Negotiate' },
     { id: 'costs', label: 'Costs' }
@@ -41,13 +41,35 @@
     render();
     if (!state.settings.autoOpen) minimize();
     chrome.runtime.sendMessage({ type: 'score', score: state.result.score, tone: state.result.verdict.tone }).catch(() => {});
+    if (state.settings.euCompare) loadEu();
+  }
+
+  // EU comparison from AutoScout24 arrives after the first render, then the score is refreshed.
+  async function loadEu() {
+    const queries = CDS.eu.queries(state.car);
+    if (!queries.length) return;
+    state.euStatus = 'loading';
+    render();
+    try {
+      const res = await chrome.runtime.sendMessage({ type: 'euMarket', queries });
+      if (!res || res.error) throw new Error(res?.error || 'no response');
+      state.eu = res;
+      state.euStatus = 'done';
+    } catch (err) {
+      console.warn('[DealScore] EU lookup failed', err);
+      state.euStatus = 'error';
+    }
+    await score();
+    render();
+    chrome.runtime.sendMessage({ type: 'score', score: state.result.score, tone: state.result.verdict.tone }).catch(() => {});
   }
 
   async function score() {
     const car = { ...state.car, ...state.overrides };
     const key = CDS.data.modelKey(car.make, car.model);
     const comps = key ? await CDS.store.compsFor(key) : [];
-    state.result = CDS.scoring.evaluate(car, { comps, profile: state.settings.profile });
+    state.result = CDS.scoring.evaluate(car, { comps, eu: state.eu, profile: state.settings.profile });
+    state.highlights = CDS.insights.listingHighlights(car, state.result);
     state.nego = CDS.insights.negotiation(car, state.result);
     state.costs = CDS.insights.costs(car, state.result, state.settings);
     state.checklist = CDS.insights.checklist(car, state.result);
@@ -123,7 +145,7 @@
       <div class="tabs">
         ${TABS.map(t => `<button class="tab ${state.tab === t.id ? 'active' : ''}" data-tab="${t.id}">${t.label}${
           t.id === 'issues' && result.issues.length ? `<span class="count ${issuesHot ? 'hot' : ''}">${result.issues.length}</span>` : ''}${
-          t.id === 'inspect' ? `<span class="count">${state.checks.length}/${state.checklist.length}</span>` : ''}</button>`).join('')}
+''}</button>`).join('')}
       </div>
       <div class="body">${tabBody()}</div>
       <div class="foot">
@@ -159,7 +181,7 @@
   function banners() {
     const out = [];
     const reds = state.result.flags.filter(f => f.kind === 'red');
-    if (reds.length) out.push(`<div class="banner red">⚠ <div>${reds.map(f => esc(f.text)).join('<br>')}${state.result.capped ? `<br><small>Score capped at ${state.result.capped}.</small>` : ''}</div></div>`);
+    if (reds.length) out.push(`<div class="banner red">⚠ <div>${reds.map(f => `${esc(f.text)}${f.quote ? `<span class="quote">„${esc(f.quote)}“</span>` : ''}`).join('<br>')}${state.result.capped ? `<br><small>Score capped at ${state.result.capped}.</small>` : ''}</div></div>`);
     if (state.priceChange) {
       const d = state.priceChange.diff;
       out.push(`<div class="banner ${d < 0 ? 'green' : 'red'}">${d < 0 ? '↓' : '↑'} <div>Price ${d < 0 ? 'dropped' : 'rose'} by <b>${eur(Math.abs(d))}</b> since you saved it (${timeAgo(state.priceChange.since)}).</div></div>`);
@@ -188,14 +210,33 @@
         <div class="marker" style="left:50%" data-left="${pos(car.price)}" title="Asking price"></div>
       </div>
       <div class="band-labels"><span>Bargain</span><span>Fair</span><span>Overpriced</span></div>
+      ${euRow()}
+    </div>`;
+  }
+
+  function euRow() {
+    if (!state.settings.euCompare) return '';
+    if (state.euStatus === 'loading') return '<div class="eu"><span class="eu-flag">EU</span><span class="muted">Checking similar cars across the EU…</span></div>';
+    if (state.euStatus === 'error') return '<div class="eu"><span class="eu-flag">EU</span><span class="muted">EU comparison unavailable right now.</span></div>';
+    const e = state.result.market.eu;
+    if (!e) return '';
+    if (!e.count) return `<div class="eu"><span class="eu-flag">EU</span><span class="muted">No comparable EU listings found.</span></div>`;
+    const d = (state.car.price - e.estimate) / e.estimate;
+    return `<div class="eu">
+      <span class="eu-flag">EU</span>
+      <span><b>${eur(e.estimate)}</b> typical for this year/km · ${e.count} cars${e.countries?.length ? ` (${e.countries.slice(0, 5).join(', ')})` : ''}
+        <span class="${d < 0 ? 'eu-down' : 'eu-up'}">${pct(d)}</span></span>
+      <a href="${esc(e.url)}" target="_blank" rel="noopener">View ↗</a>
     </div>`;
   }
 
   function sourceNote() {
     const m = state.result.market;
-    if (m.source === 'comps' || m.source === 'blend') return `Price based on ${m.comps} similar listing${m.comps === 1 ? '' : 's'}${m.source === 'blend' ? ' + reference data' : ''}`;
-    if (m.source === 'reference') return 'Price from reference data · browse results to improve';
-    return 'No price reference';
+    const parts = [];
+    if (m.comps) parts.push(`${m.comps} avto.net listing${m.comps === 1 ? '' : 's'}`);
+    if (m.eu?.count) parts.push(`${m.eu.count} EU listings`);
+    if (!parts.length) return m.estimate ? 'Price from rough reference data' : 'No price reference';
+    return `Price based on ${parts.join(' + ')}`;
   }
 
   function tabBody() {
@@ -223,19 +264,19 @@
         <div class="cat-notes">${c.notes.map(n => `<div class="note ${n.kind}">${esc(n.text)}</div>`).join('') || '<div class="note">No notes.</div>'}</div>
       </div>`).join('');
 
-    const highlights = [
-      ...result.flags.filter(f => f.kind !== 'red').map(f => ({ kind: 'warn', text: f.text })),
-      ...result.warnings.slice(0, 4).map(t => ({ kind: 'warn', text: t })),
-      ...result.positives.slice(0, 4).map(t => ({ kind: 'good', text: t }))
-    ];
-    const seen = new Set();
-    const uniq = highlights.filter(h => !seen.has(h.text) && seen.add(h.text));
+    const hl = state.highlights;
+    const fromListing = hl.items.map(h => `<div class="note ${h.kind}"><div>${esc(h.text)}${h.quote && h.quote !== h.text ? `<span class="quote">„${esc(h.quote)}“</span>` : ''}</div></div>`).join('');
+    const equipment = hl.equipment.length
+      ? `<div class="chips">${hl.equipment.map(e => `<span class="chip-eq">${esc(e)}</span>`).join('')}</div>
+         <div class="small muted">${hl.equipmentCount} equipment items listed in total</div>` : '';
 
     const ownersVal = state.overrides.owners ?? car.owners;
     return `
       <div class="section-title">Score breakdown <span class="muted small">· tap a row for details</span></div>
       ${cats}
-      ${uniq.length ? `<div class="section-title">Highlights</div>${uniq.slice(0, 8).map(h => `<div class="note ${h.kind}">${esc(h.text)}</div>`).join('')}` : ''}
+      <div class="section-title">From the listing</div>
+      ${fromListing || '<div class="note">The seller didn’t tick any condition boxes or add a comment.</div>'}
+      ${equipment ? `<div class="section-title">Notable equipment</div>${equipment}` : ''}
       <div class="section-title">Detected data</div>
       <div class="facts">
         ${fact('Year', car.year ? `${car.month ? car.month + '/' : ''}${car.year}` : '–')}

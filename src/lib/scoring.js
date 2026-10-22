@@ -22,25 +22,53 @@ CDS.scoring = (() => {
   };
 
   // Phrases sellers use in the free-text and "Stanje" sections (Slovene, with common misspellings).
+  // A phrase preceded by a negation ("vozilo NI BILO karambolirano", "brez rje") means the opposite:
+  // rules with `neg` then count as that positive statement instead; others are simply ignored.
   const TEXT_RULES = [
-    { re: /karambol|poškodovan|poskodovan|po nesreči|po nesreci|toča|toca\b|hail/i, kind: 'red', cat: 'history', pts: -45, cap: 45, label: 'Listing mentions accident or body damage' },
-    { re: /v okvari|ne vžge|ne vzge|nevozn|ne vozi|za dele|okvara motorja|okvara menjalnika/i, kind: 'red', cat: 'history', pts: -50, cap: 35, label: 'Listing says the car is faulty or not drivable' },
-    { re: /brez prometnega|brez dokumentov|brez papirjev|tuje tablice|odjavljen/i, kind: 'red', cat: 'history', pts: -25, cap: 55, label: 'Paperwork / registration problem mentioned' },
-    { re: /servisna knjiga|servisno knjigo|redno servisiran|servisiran v pooblašč|servisirano pri/i, kind: 'good', cat: 'history', pts: 12, label: 'Service history documented' },
-    { re: /prvi lastnik|1\. lastnik|en lastnik|1 lastnik/i, kind: 'good', cat: 'history', pts: 6, label: 'Seller says first owner' },
-    { re: /garažiran|garaziran/i, kind: 'good', cat: 'age', pts: 4, label: 'Kept in a garage' },
-    { re: /garancij|jamstvo/i, kind: 'good', cat: 'history', pts: 8, label: 'Warranty offered' },
-    { re: /slovensko poreklo|slovenskega porekla|kupljen v sloveniji|kupljeno v sloveniji|slo poreklo/i, kind: 'good', cat: 'history', pts: 6, label: 'Originally sold in Slovenia' },
-    { re: /(menjan|zamenjan|nov)[a-z]*\s+(zobat[a-z]*\s+)?jermen|jermen (je )?(menjan|zamenjan)|(menjana|nova) veriga/i, kind: 'good', cat: 'reliability', pts: 8, label: 'Timing belt/chain recently replaced' },
-    { re: /nov[ae]? (zimske |letne )?gume|nove pnevmatike/i, kind: 'good', cat: 'age', pts: 3, label: 'New tyres' },
-    { re: /\buvoz|uvožen|uvozen|iz nemčije|iz nemcije|iz italije|iz avstrije/i, kind: 'info', cat: 'history', pts: -4, label: 'Imported – verify history abroad (carVertical / Autodna)' },
-    { re: /lučka|lucka|check engine|napaka na/i, kind: 'warn', cat: 'reliability', pts: -12, label: 'Warning light or fault mentioned' },
-    { re: /rja\b|rjav[ai]|korozij/i, kind: 'warn', cat: 'age', pts: -12, label: 'Rust/corrosion mentioned' },
-    { re: /pušča|pusca|puščanje|kaplja olje/i, kind: 'warn', cat: 'reliability', pts: -10, label: 'Leak mentioned' },
-    { re: /potrebn[oa] (popravil|menjav|servis)|potrebuje (popravil|menjav|servis)/i, kind: 'warn', cat: 'reliability', pts: -12, label: 'Seller says repairs are needed' },
-    { re: /brez garancije|kupljeno videno|videno.kupljeno/i, kind: 'info', cat: 'history', pts: -3, label: 'Sold as seen, no warranty' },
-    { re: /napake ne odgovarjamo|ne odgovarjamo za|pridržujemo pravico do napak/i, kind: 'info', cat: 'history', pts: 0, label: 'Seller disclaims errors in the listing – verify every figure' }
+    { id: 'damage', re: /karambol\w*|poškodovan\w*|poskodovan\w*|po nesreči|po nesreci|toča|toco|toce\b|hail/i, kind: 'red', cat: 'history', pts: -45, cap: 45,
+      label: 'Listing mentions accident or body damage', neg: { kind: 'good', pts: 6, label: 'Seller states it was never in an accident' } },
+    { id: 'faulty', re: /v okvari|ne vžge|ne vzge|nevozn\w*|ne vozi|za dele|okvara motorja|okvara menjalnika/i, kind: 'red', cat: 'history', pts: -50, cap: 35, label: 'Listing says the car is faulty or not drivable' },
+    { id: 'papers', re: /brez prometnega|brez dokumentov|brez papirjev|tuje tablice|odjavljen\w*/i, kind: 'red', cat: 'history', pts: -25, cap: 55, label: 'Paperwork / registration problem mentioned' },
+    { id: 'service', re: /servisn[ae] knjig\w*|servisno knjigo|redno servisiran\w*|servisiran\w* v pooblašč\w*|servisiran\w* pri/i, kind: 'good', cat: 'history', pts: 12,
+      label: 'Service history documented', neg: { kind: 'warn', pts: -8, label: 'No service book' } },
+    { id: 'firstOwner', re: /prvi lastnik|1\. lastnik|en lastnik|1 lastnik/i, kind: 'good', cat: 'history', pts: 6, label: 'Seller says first owner' },
+    { id: 'garage', re: /garažiran\w*|garaziran\w*/i, kind: 'good', cat: 'age', pts: 4, label: 'Kept in a garage', neg: { kind: 'info', pts: 0, label: 'Not kept in a garage' } },
+    { id: 'warranty', re: /garancij\w*|jamstv\w*/i, kind: 'good', cat: 'history', pts: 8, label: 'Warranty offered' },
+    { id: 'slovene', re: /slovensko poreklo|slovenskega porekla|kupljen\w* v sloveniji|slo poreklo/i, kind: 'good', cat: 'history', pts: 6, label: 'Originally sold in Slovenia' },
+    { id: 'belt', re: /(menjan|zamenjan|nov)[a-zčšž]*\s+(zobat[a-zčšž]*\s+)?jermen|jermen (je )?(menjan|zamenjan)|(menjana|nova) veriga/i, kind: 'good', cat: 'reliability', pts: 8, label: 'Timing belt/chain recently replaced' },
+    { id: 'tyres', re: /nov[ae]? (zimske |letne )?gume|nove pnevmatike/i, kind: 'good', cat: 'age', pts: 3, label: 'New tyres' },
+    { id: 'import', re: /\buvoz\w*|uvožen\w*|uvozen\w*|iz nemčije|iz nemcije|iz italije|iz avstrije/i, kind: 'info', cat: 'history', pts: -4, label: 'Imported – verify history abroad (carVertical / Autodna)' },
+    { id: 'light', re: /lučka|lucka|check engine|napaka na/i, kind: 'warn', cat: 'reliability', pts: -12, label: 'Warning light or fault mentioned' },
+    { id: 'rust', re: /\brja\b|\brje\b|rjav[ai]\b|korozij\w*/i, kind: 'warn', cat: 'age', pts: -12, label: 'Rust/corrosion mentioned', neg: { kind: 'good', pts: 3, label: 'Seller states no rust' } },
+    { id: 'leak', re: /pušča|pusca|puščanje|kaplja olje/i, kind: 'warn', cat: 'reliability', pts: -10, label: 'Leak mentioned' },
+    { id: 'repairs', re: /potrebn[oa] (popravil|menjav|servis)\w*|potrebuje (popravil|menjav|servis)\w*/i, kind: 'warn', cat: 'reliability', pts: -12, label: 'Seller says repairs are needed' },
+    { id: 'asIs', re: /brez garancije|kupljeno videno|videno.kupljeno/i, kind: 'info', cat: 'history', pts: -3, label: 'Sold as seen, no warranty' },
+    { id: 'disclaimer', re: /napake\W+ne\W+odgovarjamo|ne odgovarjamo za|pridržujemo pravico do napak/i, kind: 'info', cat: 'history', pts: 0, label: 'Seller disclaims errors in the listing – verify every figure' }
   ];
+
+  // "ni bilo", "brez", "nikoli" ... within the two words before a phrase negate it.
+  const NEGATION = /(?:^|[\s,(/])(ni|niso|ne|nikoli|brez|nobene|noben|nima|nimajo)\s+(?:\S+\s+){0,2}$/i;
+
+  // Every occurrence of a rule in the text, with the line it came from (the quote) and whether it is negated.
+  function findPhrases(rule, text) {
+    const out = [];
+    const re = new RegExp(rule.re.source, 'gi');
+    for (const rawLine of String(text || '').split('\n')) {
+      const line = rawLine.replace(/\s+/g, ' ').trim();
+      if (!line) continue;
+      re.lastIndex = 0;
+      let m;
+      while ((m = re.exec(line))) {
+        const before = line.slice(Math.max(0, m.index - 30), m.index);
+        // Also "nepoškodovan" / "nekarambolirano" written as one word.
+        const negated = NEGATION.test(before) || /ne$/i.test(before);
+        const quote = line.length > 110 ? `…${line.slice(Math.max(0, m.index - 40), m.index + 70).trim()}…` : line;
+        out.push({ match: m[0], quote, negated });
+        if (re.lastIndex === m.index) re.lastIndex++;
+      }
+    }
+    return out;
+  }
 
   function categoryScorePrice(car, market, out) {
     if (!car.price) { out.notes.push({ kind: 'warn', text: 'Price missing.' }); return 50; }
@@ -55,6 +83,11 @@ CDS.scoring = (() => {
     else if (d <= -0.05) out.notes.push({ kind: 'good', text: `${eur(-diff)} below the estimated market value (${pct(d)}).` });
     else if (d <= 0.05) out.notes.push({ kind: 'good', text: `Priced in line with the market (${pct(d)}).` });
     else out.notes.push({ kind: d > 0.15 ? 'warn' : 'info', text: `${eur(diff)} above the estimated market value (${pct(d)}).` });
+    if (market.eu?.count) {
+      const e = market.eu;
+      const d2 = (car.price - e.estimate) / e.estimate;
+      out.notes.push({ kind: 'info', text: `EU market: ${e.count} similar cars on AutoScout24, typically ${eur(e.estimate)} for this year/km (${pct(d2)} vs this price).` });
+    }
     // Uncertain estimates should not swing the score too hard.
     const pull = { high: 0, medium: 0.15, low: 0.45 }[market.confidence] ?? 0.5;
     if (market.confidence === 'low') out.notes.push({ kind: 'info', text: 'Market estimate has low confidence (variant match is approximate).' });
@@ -170,9 +203,9 @@ CDS.scoring = (() => {
     return { id: 'risky', label: 'Risky', tone: 'risky' };
   }
 
-  function evaluate(car, { comps = [], profile = 'balanced', customWeights = null } = {}) {
+  function evaluate(car, { comps = [], eu = null, profile = 'balanced', customWeights = null } = {}) {
     const weights = customWeights || PROFILES[profile]?.weights || PROFILES.balanced.weights;
-    const market = CDS.market.estimate(car, comps);
+    const market = CDS.market.estimate(car, comps, eu);
     const issues = findIssues(car);
     const popularity = CDS.data.getPopularity(car.make, car.model, car.variant);
     const details = {};
@@ -193,15 +226,20 @@ CDS.scoring = (() => {
 
     // Listing text: adjust categories and collect flags.
     let cap = 100;
-    const text = [car.description, ...(car.conditionNotes || [])].filter(Boolean).join(' \n ');
+    const text = [car.description, car.starostRaw, ...(car.conditionNotes || [])].filter(Boolean).join('\n');
     for (const rule of TEXT_RULES) {
-      const m = text.match(rule.re);
-      if (!m) continue;
-      textHits.push({ ...rule, match: m[0] });
-      per[rule.cat].score = clamp(per[rule.cat].score + rule.pts, 0, 100);
-      per[rule.cat].notes.push({ kind: rule.kind === 'red' ? 'warn' : rule.kind, text: rule.label });
-      if (rule.kind === 'red' || rule.kind === 'warn') flags.push({ kind: rule.kind, text: rule.label });
-      if (rule.cap) cap = Math.min(cap, rule.cap);
+      const found = findPhrases(rule, text);
+      if (!found.length) continue;
+      const positive = found.filter(f => !f.negated);
+      let hit;
+      if (positive.length) hit = { ...rule, match: positive[0].match, quote: positive[0].quote };
+      else if (rule.neg) hit = { ...rule, ...rule.neg, cap: null, negated: true, match: found[0].match, quote: found[0].quote };
+      else continue;
+      textHits.push(hit);
+      per[rule.cat].score = clamp(per[rule.cat].score + hit.pts, 0, 100);
+      per[rule.cat].notes.push({ kind: hit.kind === 'red' ? 'warn' : hit.kind, text: hit.label });
+      if (hit.kind === 'red' || hit.kind === 'warn') flags.push({ kind: hit.kind, text: hit.label, quote: hit.quote });
+      if (hit.cap) cap = Math.min(cap, hit.cap);
     }
 
     // An unresolved, engine-threatening known issue rules out "Great deal" until the fix is proven.
@@ -214,7 +252,8 @@ CDS.scoring = (() => {
 
     const totalW = Object.values(weights).reduce((a, b) => a + b, 0) || 1;
     let score = CATEGORIES.reduce((sum, c) => sum + per[c.id].score * (weights[c.id] || 0), 0) / totalW;
-    if (market.confidence !== 'none' && market.delta !== null && market.delta < -0.35) cap = Math.min(cap, 70);
+    // Far below a well-supported market price is a scam/damage warning sign.
+    if ((market.confidence === 'high' || market.confidence === 'medium') && market.delta !== null && market.delta < -0.35) cap = Math.min(cap, 70);
     score = Math.round(clamp(Math.min(score, cap), 0, 100));
 
     const categories = CATEGORIES.map(c => ({ ...c, score: Math.round(per[c.id].score), weight: weights[c.id] || 0, notes: per[c.id].notes }));
@@ -256,5 +295,5 @@ CDS.scoring = (() => {
     return evaluate({ ...car, description: '' }, opts);
   }
 
-  return { evaluate, quick, verdictFor, CATEGORIES, PROFILES, TEXT_RULES };
+  return { evaluate, quick, verdictFor, findPhrases, CATEGORIES, PROFILES, TEXT_RULES };
 })();

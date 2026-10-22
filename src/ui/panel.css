@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /* src/ui/panel.css – lives inside the panel's shadow root, so avto.net styles never leak in. */
 :host {
   all: initial;
@@ -38,7 +39,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   position: fixed;
   top: 84px;
   right: 18px;
-  width: 384px;
+  width: 396px;
   max-height: calc(100vh - 104px);
   display: flex;
   flex-direction: column;
@@ -145,7 +146,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* ---------- tabs ---------- */
 .tabs { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
 .tab {
-  border: 0; background: none; padding: 9px 8px 10px; font-size: 12.5px; flex: 1; color: var(--muted);
+  border: 0; background: none; padding: 9px 6px 10px; font-size: 12.5px; flex: 1 0 auto; color: var(--muted);
   border-bottom: 2px solid transparent; white-space: nowrap; font-weight: 600;
 }
 .tab:hover { color: var(--text); }
@@ -174,8 +175,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .cat.open { background: var(--surface); }
 
 .note { display: flex; gap: 8px; padding: 4px 0; font-size: 12px; color: var(--muted); }
-.note::before { content: "•"; font-weight: 900; flex: none; width: 10px; }
-.note.good::before { content: "✓"; color: var(--great); }
+.note::before { content: "\2022"; font-weight: 900; flex: none; width: 10px; }
+.note.good::before { content: "\2713"; color: var(--great); }
 .note.warn::before { content: "!"; color: var(--caution); }
 .note.info::before { content: "i"; color: var(--accent); font-style: italic; }
 .note.good, .note.warn { color: var(--text); }
@@ -213,7 +214,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .check-item:hover { background: var(--surface); }
 .check-item input { appearance: none; width: 17px; height: 17px; border-radius: 5px; border: 1.5px solid var(--faint); flex: none; margin: 1px 0 0; display: grid; place-items: center; cursor: pointer; }
 .check-item input:checked { background: var(--accent); border-color: var(--accent); }
-.check-item input:checked::after { content: "✓"; color: #fff; font-size: 11px; font-weight: 900; }
+.check-item input:checked::after { content: "\2713"; color: #fff; font-size: 11px; font-weight: 900; }
 .check-item.done .txt { color: var(--faint); text-decoration: line-through; }
 .check-item .why { display: block; font-size: 11px; color: var(--faint); }
 
@@ -272,3 +273,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .loading { padding: 40px; text-align: center; color: var(--muted); }
 .error { padding: 20px; color: var(--muted); }
+
+/* ---------- listing quotes, equipment, EU ---------- */
+.quote { display: block; font-size: 11px; color: var(--faint); font-style: italic; margin-top: 1px; }
+.banner .quote { color: inherit; opacity: .75; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+.chip-eq { font-size: 11.5px; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--text); }
+.eu { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 12px; }
+.eu > span:nth-child(2) { flex: 1; }
+.eu-flag { flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: .5px; color: #ffcc00; background: #003399; border-radius: 5px; padding: 3px 5px; }
+.eu a { color: var(--accent); text-decoration: none; font-weight: 600; white-space: nowrap; }
+.eu a:hover { text-decoration: underline; }
+.eu-down { color: var(--great); font-weight: 700; margin-left: 4px; }
+.eu-up { color: var(--caution); font-weight: 700; margin-left: 4px; }

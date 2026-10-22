@@ -40,6 +40,7 @@
         "src/lib/insights.js",
         "src/lib/parser.js",
         "src/lib/store.js",
+        "src/lib/eu.js",
         "src/content/details.js"
       ],
       "run_at": "document_idle"
@@ -66,5 +67,6 @@
       "matches": ["https://www.avto.net/*", "https://avto.net/*"]
     }
   ],
-  "permissions": ["storage"]
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.autoscout24.com/*"]
 }

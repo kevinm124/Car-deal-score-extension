@@ -1,37 +1,21 @@
 // src/lib/market.js – estimates what a car should cost.
 //
-// Two sources are blended:
-//  1. the bundled reference table (one price per model, mostly for a 2020 car) projected to the
-//     listing's year with a depreciation curve and adjusted for mileage;
-//  2. comparable listings the extension has seen on avto.net results pages ("learned comps"),
-//     which become more trusted the more of them there are.
+// Three sources are blended, each comparable adjusted to this car's year and mileage:
+//  1. EU listings from AutoScout24 (same model, fuel, gearbox, similar year/km/power);
+//  2. avto.net listings the extension has seen on results pages ("learned comps");
+//  3. the bundled reference table – a rough price per model, used only as a weak fallback.
 CDS.market = (() => {
   const { CURRENT_YEAR, clamp, median } = CDS.util;
 
   const EXPECTED_KM_PER_YEAR = 15000;
 
-  // marketPrices.json runs ~25–30% above real Slovenian asking prices (spot-checked Oct 2026:
-  // Golf 7 2.0 TDI 2017 ≈ €14k, Clio IV 2015 ≈ €7.5k, 308 II 2018 ≈ €11.5k). Learned comparables
-  // from browsing take over as they accumulate.
-  const REFERENCE_CALIBRATION = 0.78;
+  // marketPrices.json holds roughly one new-ish price per model, so it is treated as the value at
+  // age 0 and depreciated along the curve below. It is noisy, so it always counts as low confidence.
+  const REFERENCE_CALIBRATION = 1.0;
 
-  // Share of the value lost in each year of age: steep early, flattening out.
-  function yearlyLoss(age) {
-    if (age < 1) return 0.18;
-    if (age < 4) return 0.13;
-    if (age < 8) return 0.10;
-    if (age < 14) return 0.07;
-    return 0.04;
-  }
-
-  // Remaining value as a fraction of new for a car of the given age (years).
-  function retained(age) {
-    let v = 1;
-    const whole = Math.floor(Math.max(age, 0));
-    for (let a = 0; a < whole; a++) v *= 1 - yearlyLoss(a);
-    v *= 1 - yearlyLoss(whole) * (Math.max(age, 0) - whole);
-    return Math.max(v, 0.05);
-  }
+  // Typical share of the new price a used car keeps, by age in years (EU used-car market averages).
+  const RETAINED = [[0, 1], [1, 0.82], [2, 0.74], [3, 0.66], [5, 0.55], [7, 0.47], [9, 0.4], [12, 0.29], [15, 0.2], [20, 0.12], [30, 0.08]];
+  function retained(age) { return CDS.util.interp(Math.max(age, 0), RETAINED); }
 
   // Projects a price observed for one model year to another.
   function projectYear(price, fromYear, toYear) {
@@ -51,52 +35,42 @@ CDS.market = (() => {
     if (!hit || !car.year) return null;
     const years = Object.keys(hit.value).map(Number);
     const refYear = years.reduce((best, y) => Math.abs(y - car.year) < Math.abs(best - car.year) ? y : best, years[0]);
-    let est = projectYear(hit.value[refYear] * REFERENCE_CALIBRATION, refYear, car.year) * mileageFactor(car.mileage, car.year);
-    est = Math.max(est, 500);
-    return { estimate: est, key: hit.key, exact: hit.exact, refYear };
+    const age = CURRENT_YEAR - car.year + (car.month ? (6 - car.month) / 12 : 0);
+    const est = hit.value[refYear] * REFERENCE_CALIBRATION * retained(age) * mileageFactor(car.mileage, car.year);
+    return { estimate: Math.max(est, 500), key: hit.key, exact: hit.exact };
   }
 
-  // comps: [{ year, mileage, price }] for the same model key.
-  function fromComps(car, comps) {
-    if (!car.year || !comps?.length) return null;
-    const near = comps.filter(c => c.price > 300 && c.year && Math.abs(c.year - car.year) <= 2 && c.id !== car.id);
+  // Comparable listings [{ id, year, mileage, price }] adjusted to this car, then the median.
+  function adjustedMedian(car, list, maxYearGap = 2) {
+    if (!car.year || !list?.length) return null;
+    const near = list.filter(c => c.price > 300 && c.year && Math.abs(c.year - car.year) <= maxYearGap && c.id !== car.id);
     if (!near.length) return null;
-    const adjusted = near.map(c => {
-      const sameYear = projectYear(c.price, c.year, car.year);
-      return sameYear * mileageFactor(car.mileage, car.year) / mileageFactor(c.mileage, c.year);
-    });
-    return { estimate: median(adjusted), count: near.length };
+    const adjusted = near.map(c => projectYear(c.price, c.year, car.year) * mileageFactor(car.mileage, car.year) / mileageFactor(c.mileage, c.year));
+    return { estimate: median(adjusted), rawMedian: median(near.map(c => c.price)), count: near.length };
   }
 
-  function estimate(car, comps = []) {
+  // eu: { listings: [...], total, url, countries } from the background AutoScout24 lookup.
+  function estimate(car, comps = [], eu = null) {
     const ref = fromReference(car);
-    const learned = fromComps(car, comps);
-    let value = null, source = 'none', confidence = 'none';
+    const local = adjustedMedian(car, comps);
+    const euM = eu?.listings?.length ? adjustedMedian(car, eu.listings, 1) : null;
 
-    // A reference that lands far from the asking price usually means the variant was
-    // mis-matched (e.g. "BMW M" vs "BMW M340i"), so its confidence drops.
-    const plausible = ref && car.price ? (car.price / ref.estimate > 0.4 && car.price / ref.estimate < 2.5) : !!ref;
+    // A reference far from the asking price usually means the variant was mis-matched.
+    const plausible = !!ref && (!car.price || (car.price / ref.estimate > 0.5 && car.price / ref.estimate < 2));
+    const parts = [];
+    if (local) parts.push({ v: local.estimate, w: Math.min(local.count, 20) });
+    if (euM) parts.push({ v: euM.estimate, w: Math.min(euM.count, 30) * 0.6 });
+    if (ref && plausible) parts.push({ v: ref.estimate, w: parts.length ? 1 : 2 });
+    if (!parts.length && ref) parts.push({ v: ref.estimate, w: 1 });
 
-    if (learned && learned.count >= 3) {
-      const w = learned.count / (learned.count + 4);
-      value = ref && plausible ? w * learned.estimate + (1 - w) * ref.estimate : learned.estimate;
-      source = ref && plausible ? 'blend' : 'comps';
-      confidence = learned.count >= 8 ? 'high' : 'medium';
-    } else if (ref) {
-      value = ref.estimate;
-      source = 'reference';
-      confidence = !plausible ? 'low' : ref.exact ? 'medium' : 'low';
-      if (learned) {
-        value = (value * 3 + learned.estimate * learned.count) / (3 + learned.count);
-        source = 'blend';
-      }
-    } else if (learned) {
-      value = learned.estimate;
-      source = 'comps';
-      confidence = 'low';
-    }
+    const euInfo = euM ? { estimate: Math.round(euM.estimate), rawMedian: Math.round(euM.rawMedian), count: euM.count, total: eu.total, url: eu.url, countries: eu.countries } : (eu ? { count: 0, total: eu.total || 0, url: eu.url } : null);
+    if (!parts.length) return { estimate: null, confidence: 'none', source: 'none', comps: local?.count || 0, eu: euInfo };
 
-    if (!value) return { estimate: null, confidence: 'none', source: 'none', comps: learned?.count || 0 };
+    const wSum = parts.reduce((a, p) => a + p.w, 0);
+    const value = parts.reduce((a, p) => a + p.v * p.w, 0) / wSum;
+    const evidence = (local?.count || 0) + (euM?.count || 0) * 0.6;
+    const confidence = evidence >= 10 ? 'high' : evidence >= 4 ? 'medium' : 'low';
+    const source = [local && 'comps', euM && 'eu', ref && plausible && 'reference'].filter(Boolean).join('+') || 'reference';
 
     const spread = { high: 0.08, medium: 0.12, low: 0.18 }[confidence];
     return {
@@ -107,7 +81,8 @@ CDS.market = (() => {
       confidence,
       source,
       plausible,
-      comps: learned?.count || 0,
+      comps: local?.count || 0,
+      eu: euInfo,
       referenceKey: ref?.key || null,
       nextYearValue: car.year ? Math.round(value * retained(CURRENT_YEAR - car.year + 1) / retained(CURRENT_YEAR - car.year)) : null
     };

@@ -204,6 +204,7 @@
         <div class="set"><div>Profile<small>Changes how much each category counts</small></div>
           <select data-select="profile">${Object.entries(PROFILES).map(([v, l]) => `<option value="${v}" ${settings.profile === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
         <div class="set"><div>Badges on search results</div>${toggle('resultsBadges')}</div>
+        <div class="set"><div>Compare with EU market<small>Looks up similar cars on AutoScout24 (DE, AT, IT, FR, NL, BE, ES, LU). Only make, model, year, km, fuel, gearbox and power are sent.</small></div>${toggle('euCompare')}</div>
         <div class="set"><div>Learn prices while browsing<small>${CDS.util.num(stats.listings)} listings across ${stats.models} models remembered (only on this computer)</small></div>${toggle('learnPrices')}</div>
       </div>
       <div class="group"><h3>Running-cost assumptions</h3>

@@ -98,7 +98,9 @@ CDS.parser = (() => {
 
     // Price: the big bold € figure in the price card; with a discount, take the lower one.
     let price = null;
-    const priceEls = [...doc.querySelectorAll('p.h1, p.h2, .h1, .h2')].filter(e => /€/.test(e.textContent) && e.textContent.length < 40);
+    // Skip the price without VAT ("oz. 63.893 € + DDV") and struck-out old prices.
+    const priceEls = [...doc.querySelectorAll('p.h1, p.h2, .h1, .h2')].filter(e => /€/.test(e.textContent) && e.textContent.length < 40 &&
+      !/DDV|oz\./i.test(e.textContent) && !e.closest('del, s, strike, [style*="line-through"]'));
     const prices = priceEls.map(e => toInt(e.textContent)).filter(n => n && n >= 100);
     if (prices.length) price = Math.min(...prices);
     if (!price) { const m = meta.match(/(\d[\d.]*)\s*EUR/i); if (m) price = toInt(m[1]); }
@@ -119,13 +121,21 @@ CDS.parser = (() => {
     const commentEl = doc.querySelector('#StareOpombe, [id*="Opombe"]');
     const comment = (commentEl?.innerText || commentEl?.textContent || '').replace(/[ \t]+/g, ' ').trim();
     const description = [offerTable?.innerText || offerTable?.textContent || '', comment].join('\n').replace(/[ \t]+/g, ' ').trim();
+    // The table lists items under headings ending in ":" ("Varnost:", "Udobje:", ..., "Stanje:").
+    // "Stanje" holds the condition boxes the seller ticked; everything else is equipment.
     const conditionNotes = [];
+    const equipment = [];
     if (offerTable) {
-      const text = offerTable.innerText || offerTable.textContent;
-      const m = text.match(/Stanje:\s*([\s\S]*)$/i);
-      if (m) conditionNotes.push(...m[1].split('\n').map(s => s.trim()).filter(Boolean).slice(0, 40));
+      let section = '';
+      for (const raw of (offerTable.innerText || offerTable.textContent).split('\n')) {
+        const line = raw.replace(/\s+/g, ' ').trim();
+        if (!line || /^oprema in ostali podatki/i.test(line)) continue;
+        if (/^[^:]{2,30}:$/.test(line)) { section = line.slice(0, -1).toLowerCase(); continue; }
+        (section === 'stanje' ? conditionNotes : equipment).push(line);
+      }
     }
     const bodyText = doc.body?.innerText || doc.body?.textContent || '';
+    const dealerSince = (bodyText.match(/registriran kot trgovec na www\.avto\.net od (\d{1,2})\.(\d{1,2})\.(\d{4})/i) || []).slice(1).map(Number);
 
     return {
       id: listingIdFromUrl(url),
@@ -153,10 +163,13 @@ CDS.parser = (() => {
       inspection,
       location: pick(fields, 'Kraj ogleda'),
       condition: /poškod|karambol/.test(starost) ? 'damaged' : /novo/.test(starost) ? 'new' : /test|demo/.test(starost) ? 'demo' : 'used',
+      starostRaw: pick(fields, 'Starost'),
       sellerType: /registriran kot trgovec/i.test(bodyText) ? 'dealer' : 'private',
+      dealerSince: dealerSince.length === 3 ? { day: dealerSince[0], month: dealerSince[1], year: dealerSince[2] } : null,
       description,
       comment,
-      conditionNotes,
+      conditionNotes: conditionNotes.slice(0, 40),
+      equipment: equipment.slice(0, 200),
       image: doc.querySelector('meta[property="og:image"]')?.content || null
     };
   }
@@ -172,15 +185,19 @@ CDS.parser = (() => {
     const full = CDS.data.splitTitle(title);
 
     const fields = {};
-    row.querySelectorAll('.GO-Results-Data tr').forEach(tr => {
+    // Promoted "TOP PONUDBA" rows use GO-Results-Top-* classes instead of GO-Results-*.
+    row.querySelectorAll('.GO-Results-Data tr, .GO-Results-Top-Data tr').forEach(tr => {
       const tds = tr.querySelectorAll('td');
       if (tds.length >= 2) fields[norm(tds[0].textContent)] = tds[1].textContent.replace(/\s+/g, ' ').trim();
       else if (tds.length === 1 && /ccm|kW/.test(tds[0].textContent)) fields.MOTOR = tds[0].textContent.trim();
     });
 
-    const priceBox = row.querySelector('.GO-Results-PriceLogo .GO-Results-Price') || row.querySelector('.GO-Results-Price');
-    const priceTexts = priceBox ? [...priceBox.querySelectorAll('[class*="Price-TXT"]')].map(e => e.textContent) : [];
-    const prices = priceTexts.map(toInt).filter(n => n && n >= 100);
+    // Sale price ("AkcijaCena") wins over the regular one; the struck-out old price and the
+    // price without VAT ("BruttoNeto") are never the asking price.
+    const priceBox = row.querySelector('.GO-Results-PriceLogo .GO-Results-Price, .GO-Results-Top-PriceLogo .GO-Results-Top-Price') ||
+      row.querySelector('.GO-Results-Price, .GO-Results-Top-Price');
+    const priceOf = cls => toInt(priceBox?.querySelector(`[class*="Price-TXT-${cls}"]`)?.textContent);
+    const prices = [priceOf('AkcijaCena'), priceOf('Regular')].filter(n => n && n >= 100);
     const sold = /prodano/i.test(priceBox?.textContent || '');
     const engine = engineOf(fields.MOTOR);
     const reg = yearMonth(fields['1.REGISTRACIJA'] || fields.LETNIK);
@@ -194,7 +211,7 @@ CDS.parser = (() => {
       make: head.make,
       model: head.model,
       variant: full.variant || '',
-      price: prices.length ? Math.min(...prices) : null,
+      price: prices[0] || null,
       sold,
       year: reg?.year || null,
       mileage: toInt(fields['PREVOZENIH'] || fields['PREVOZENI KM']),
@@ -204,7 +221,7 @@ CDS.parser = (() => {
       gearbox: gearboxOf(gearRaw, title, head.make),
       powerKw: engine.powerKw,
       ccm: engine.ccm,
-      image: row.querySelector('.GO-Results-Photo img')?.src || null
+      image: row.querySelector('.GO-Results-Photo img, .GO-Results-Top-Photo img')?.src || null
     };
   }
 

@@ -465,7 +465,7 @@ CDS.knownIssues = (() => {
         const ccmHit = it.ccm && car.ccm ? it.ccm.some(([a, b]) => car.ccm >= a && car.ccm <= b) : false;
         if (!engHit && !ccmHit) {
           // Engine is known and doesn't match -> skip. Unknown engine -> "possible".
-          if (car.ccm || /\d[.,]\d/.test(hay)) continue;
+          if (car.ccm || /\b\d[.,]\d\b/.test(hay)) continue;
           unknown++;
         }
       }

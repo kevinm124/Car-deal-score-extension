@@ -49,7 +49,7 @@ CDS.insights = (() => {
       issue.check ? `${issue.title}: ${issue.check}` : `Check for: ${issue.title}`,
       issue.cost ? `Repair ${issue.cost}` : 'Reported on this model'));
 
-    if (result.textHits.some(h => /uvoz/i.test(h.match))) add('import', 'Papers', 'Imported: get foreign service records and check foreign history databases', '');
+    if (result.textHits.some(h => h.id === 'import')) add('import', 'Papers', 'Imported: get foreign service records and check foreign history databases', '');
     if (car.sellerType === 'private') add('owner', 'Papers', 'Make sure the seller is the registered owner (name on the papers)', '');
     return items;
   }
@@ -63,6 +63,10 @@ CDS.insights = (() => {
     const lev = (text, amount) => { leverage.push({ text, amount: Math.round(amount) }); cut += amount; };
 
     if (m.estimate && m.delta > 0.02) lev(`Priced ${eur(car.price - m.estimate)} above estimated market value`, car.price - m.estimate);
+    const eu = m.eu;
+    if (eu?.count >= 5 && car.price > eu.estimate + 1000) {
+      lev(`${eu.count} similar cars in the EU go for about ${eur(eu.estimate)} – even with ~€1,000 import costs this is ${eur(car.price - eu.estimate - 1000)} more`, (car.price - eu.estimate - 1000) * 0.5);
+    }
     if ((car.mileage || 0) > 150000) lev('High mileage – wear items (suspension, clutch, brakes) due soon', car.price * 0.03);
     if ((result.details.kmPerYear || 0) > 25000) lev('Heavy yearly usage', car.price * 0.02);
     if ((car.owners || 0) >= 3) lev(`${car.owners} previous owners`, car.price * 0.025);
@@ -71,7 +75,7 @@ CDS.insights = (() => {
     serious.forEach(i => lev(`Known ${i.sev === 3 ? 'expensive ' : ''}issue: ${i.title}${i.cost ? ` (${i.cost})` : ''} – ask for proof it was fixed`,
       Math.min(car.price * (i.sev === 3 ? 0.04 : 0.015), i.sev === 3 ? 1500 : 500)));
     if (car.inspection && (car.inspection.year < CURRENT_YEAR || (car.inspection.year === CURRENT_YEAR && (car.inspection.month || 12) <= new Date().getMonth() + 3))) lev('Technical inspection expired or due', 150);
-    if (!result.textHits.some(h => /service history/i.test(h.label))) lev('No documented service history mentioned', car.price * 0.02);
+    if (!result.textHits.some(h => h.id === 'service' && !h.negated)) lev('No documented service history mentioned', car.price * 0.02);
     if (car.sellerType === 'dealer') leverage.push({ text: 'Dealer – ask for a warranty or free service instead of (or as well as) a discount', amount: 0 });
 
     const step = car.price > 20000 ? 250 : car.price > 5000 ? 100 : 50;
@@ -148,5 +152,83 @@ CDS.insights = (() => {
     return lines.join('\n');
   }
 
-  return { checklist, negotiation, costs, sellerMessage, report };
+  // Condition boxes sellers tick in the "Stanje" section, with an English meaning.
+  const CONDITION_MEANING = [
+    [/ni bil[oa]? karambol|nepoškodovan|brez poškodb/i, 'good', 'Never in an accident'],
+    [/karambol|poškodovan/i, 'warn', 'Accident damage'],
+    [/servisn[ae] knjig.*potrjen/i, 'good', 'Service book, stamped'],
+    [/servisn[ae] knjig/i, 'good', 'Service book'],
+    [/slovensko poreklo/i, 'good', 'First sold in Slovenia'],
+    [/tuje poreklo|uvoz/i, 'info', 'Imported'],
+    [/navodila za uporabo/i, 'info', 'Owner’s manual in Slovene'],
+    [/1\. lastnik|prvi lastnik/i, 'good', 'First owner'],
+    [/garažiran/i, 'good', 'Garage-kept'],
+    [/nekadilsk/i, 'good', 'Non-smoker car'],
+    [/rezervni ključ|2 ključa|dva ključa/i, 'good', 'Spare key'],
+    [/garancij|jamstv/i, 'good', 'Warranty'],
+    [/v okvari|nevozn/i, 'warn', 'Faulty / not drivable'],
+    [/ohranjen/i, 'good', 'Well kept'],
+    [/kupljen.*pri nas|kupljen.*v sloveniji/i, 'good', 'Bought new from this dealer / in Slovenia']
+  ];
+
+  const NOTABLE_EQUIPMENT = [
+    [/navigacij/i, 'Navigation'],
+    [/panoram/i, 'Panoramic roof'],
+    [/usnje|usnjen/i, 'Leather'],
+    [/gretje sede|ogrevan\w* sede|gretje prednjih sede/i, 'Heated seats'],
+    [/aktivni tempomat|adaptiv\w* tempomat|\bacc\b/i, 'Adaptive cruise'],
+    [/vzvratna kamera|parkirna kamera|kamera 360|360.? kamer/i, 'Parking camera'],
+    [/keyless/i, 'Keyless'],
+    [/matrix|led žaromet/i, 'LED headlights'],
+    [/xenon/i, 'Xenon lights'],
+    [/head.?up/i, 'Head-up display'],
+    [/vlečn\w* kljuk/i, 'Tow bar'],
+    [/carplay|android auto/i, 'CarPlay / Android Auto'],
+    [/4x4|štirikolesn|quattro|4motion|xdrive|4matic|awd/i, 'All-wheel drive'],
+    [/mrtv\w* kot|blind.?spot/i, 'Blind-spot assist'],
+    [/ohranjanj\w* vozn\w* pasu|spremembe voznega pasu|lane/i, 'Lane assist'],
+    [/el\. (odpiranje|zapiranje)? ?prtljažn|električn\w* prtljažn/i, 'Electric tailgate'],
+    [/hi-?fi|harman|bose|bang|burmester|meridian/i, 'Premium audio'],
+    [/zimske gume|letne gume|komplet gum/i, 'Extra set of tyres']
+  ];
+
+  // What the listing itself says – quotes from the seller's ticked boxes and comment,
+  // plus facts and equipment, each with an English meaning.
+  function listingHighlights(car, result) {
+    const items = [];
+    const seen = new Set();
+    const add = (kind, text, quote) => {
+      if (seen.has(text)) return;
+      seen.add(text);
+      items.push({ kind, text, quote });
+    };
+
+    (car.conditionNotes || []).forEach(note => {
+      const hit = CONDITION_MEANING.find(([re]) => re.test(note));
+      add(hit ? hit[1] : 'info', hit ? hit[2] : note, note);
+    });
+    // Phrases found in the seller's comment (not already covered by ticked boxes).
+    result.textHits.filter(h => h.quote && h.id !== 'disclaimer').forEach(h => {
+      const kind = h.kind === 'red' ? 'warn' : h.kind;
+      const covered = (car.conditionNotes || []).some(n => n.replace(/\s+/g, ' ').trim() === h.quote);
+      if (!covered) add(kind, h.label, h.quote);
+    });
+    if (car.starostRaw && /garancij|jamstv/i.test(car.starostRaw)) add('good', 'Warranty', car.starostRaw);
+    if (car.inspection) add('info', `Technical inspection valid until ${car.inspection.month ? car.inspection.month + '/' : ''}${car.inspection.year}`, null);
+    if (car.euroClass) add('info', `Euro ${car.euroClass}${car.consumption ? ` · ${String(car.consumption).replace('.', ',')} l/100 km (combined)` : ''}`, null);
+    if (car.sellerType === 'dealer') {
+      const since = car.dealerSince?.year;
+      add(since && CURRENT_YEAR - since < 2 ? 'info' : 'good', `Dealer${since ? ` on avto.net since ${since}` : ''}`, null);
+    } else {
+      add('info', 'Private seller – no legal warranty, check ownership papers', null);
+    }
+    const equipment = [];
+    const eqText = (car.equipment || []).join('\n');
+    NOTABLE_EQUIPMENT.forEach(([re, label]) => { if (re.test(eqText) && !equipment.includes(label)) equipment.push(label); });
+    const disclaimer = result.textHits.find(h => h.id === 'disclaimer');
+    if (disclaimer) add('info', 'Seller disclaims errors in the listing – verify every figure', disclaimer.quote);
+    return { items, equipment, equipmentCount: (car.equipment || []).length };
+  }
+
+  return { checklist, negotiation, costs, sellerMessage, report, listingHighlights };
 })();

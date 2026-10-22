@@ -57,15 +57,61 @@ test('market estimate depreciates with age and mileage', () => {
   assert.ok(newer.low < newer.estimate && newer.estimate < newer.high);
 });
 
-test('learned comparables take over the estimate when there are enough', () => {
+test('learned comparables dominate the rough reference price', () => {
   const comps = Array.from({ length: 10 }, (_, i) => ({ id: `c${i}`, year: 2017, mileage: 100000, price: 9000 + i * 100 }));
-  const reference = CDS.market.estimate(car({ year: 2017, mileage: 100000 }));
-  const m = CDS.market.estimate(car({ year: 2017, mileage: 100000 }), comps);
+  const m = CDS.market.estimate(car({ year: 2017, mileage: 100000, price: 9500 }), comps);
   assert.equal(m.confidence, 'high');
-  assert.equal(m.source, 'blend');
-  // 10 comps -> ~71% weight on the comps' median (9,450 €)
-  const expected = 0.714 * 9450 + 0.286 * reference.estimate;
-  assert.ok(Math.abs(m.estimate - expected) < 50, `estimate ${m.estimate} vs ${expected}`);
+  assert.ok(m.source.startsWith('comps'));
+  assert.ok(Math.abs(m.estimate - 9450) / 9450 < 0.08, `estimate ${m.estimate} should be near the comps median 9,450`);
+});
+
+test('EU listings feed the estimate and are reported separately', () => {
+  const eu = { total: 120, url: 'https://www.autoscout24.com/lst/x', countries: ['D', 'A'],
+    listings: Array.from({ length: 20 }, (_, i) => ({ id: `e${i}`, year: 2017, mileage: 100000, price: 11000 + i * 50 })) };
+  const m = CDS.market.estimate(car({ year: 2017, mileage: 100000, price: 12000 }), [], eu);
+  assert.equal(m.eu.count, 20);
+  assert.ok(Math.abs(m.eu.estimate - 11475) < 50);
+  assert.ok(m.source.includes('eu'));
+  assert.equal(m.confidence, 'high');
+});
+
+test('negated damage wording counts as a positive, not a red flag', () => {
+  const said = d => CDS.scoring.evaluate(car({ description: d }));
+  for (const d of ['Stanje:\nvozilo ni bilo karambolirano','nepoškodovano vozilo', 'Vozilo nikoli ni bilo poškodovano']) {
+    const r = said(d);
+    assert.ok(!r.flags.some(f => f.kind === 'red'), d);
+    assert.ok(r.textHits.some(h => h.id === 'damage' && h.negated), d);
+  }
+  assert.ok(said('vozilo je karambolirano').flags.some(f => f.kind === 'red'));
+  assert.ok(said('brez servisne knjige').textHits.some(h => h.id === 'service' && h.negated));
+});
+
+test('AutoScout24 URLs use the right model slugs and filters', () => {
+  const golf = CDS.eu.queries(car({ variant: '2.0 TDI', powerKw: 110, gearbox: 'dsg' }));
+  assert.equal(golf[0].slug, 'volkswagen/golf');
+  assert.match(golf[0].urls[0], /fuel=D/);
+  assert.match(golf[0].urls[0], /gear=A/);
+  assert.match(golf[0].urls[0], /powerfrom=93/);
+  assert.equal(CDS.eu.queries(car({ make: 'BMW', model: '3', variant: '320D XDRIVE' }))[0].slug, 'bmw/320');
+  assert.equal(CDS.eu.queries(car({ make: 'BMW', model: '3', variant: '' }))[0].slug, 'bmw/3-series');
+  assert.equal(CDS.eu.queries(car({ make: 'Mercedes-Benz', model: 'C-RAZRED', variant: 'C 220 D' }))[0].slug, 'mercedes-benz/c-220');
+  assert.equal(CDS.eu.queries(car({ make: 'CITROEN', model: 'C4', variant: 'PICASSO 1.6 HDI' }))[0].slug, 'citroen/c4-picasso');
+});
+
+test('listing highlights quote what the seller actually wrote', () => {
+  const c = car({
+    conditionNotes: ['servisna knjiga / potrjena', 'vozilo ni bilo karambolirano', 'slovensko poreklo', '1. lastnik'],
+    equipment: ['navigacijski sistem', 'vzvratna kamera', 'Apple CarPlay', 'ABS zavorni sistem'],
+    starostRaw: 'rabljeno / ima garancijo', sellerType: 'dealer', dealerSince: { year: 2002 }
+  });
+  const h = CDS.insights.listingHighlights(c, CDS.scoring.evaluate(c));
+  const texts = h.items.map(i => i.text);
+  assert.ok(texts.includes('Never in an accident'));
+  assert.ok(texts.includes('Service book, stamped'));
+  assert.ok(texts.includes('First sold in Slovenia'));
+  assert.ok(h.items.find(i => i.text === 'Never in an accident').quote === 'vozilo ni bilo karambolirano');
+  assert.ok(!h.items.some(i => i.kind === 'warn'));
+  assert.deepEqual([...h.equipment], ['Navigation', 'Parking camera', 'CarPlay / Android Auto']);
 });
 
 test('accident wording caps the score', () => {
@@ -138,4 +184,10 @@ test('number formatting uses Slovene grouping', () => {
   assert.equal(CDS.util.eur(9850), '9.850 €');
   assert.equal(CDS.util.eur(-1234567), '−1.234.567 €');
   assert.equal(CDS.util.km(267000), '267.000 km');
+});
+
+test('an engine size in the title rules out issues for other engines', () => {
+  const r = CDS.knownIssues.match({ make: 'PEUGEOT', model: '308', variant: '1.6 THP', title: 'Peugeot 308 1.6 THP', year: 2015, fuel: 'petrol' });
+  assert.ok(!r.items.some(i => i.id === 'psa-puretech'), 'a 1.6 THP is not a 1.2 PureTech');
+  assert.ok(r.items.some(i => i.id === 'psa-thp'));
 });
