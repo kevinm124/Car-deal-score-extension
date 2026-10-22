@@ -1,34 +1,72 @@
-
 {
   "manifest_version": 3,
-  "name": "Car Deal Safety Score",
-  "version": "0.2.1",
-  "description": "Analyzes avto.net car listings and shows deal quality score",
+  "name": "DealScore – Car Deal Analyzer for avto.net",
+  "short_name": "DealScore",
+  "version": "1.0.0",
+  "description": "Scores avto.net car listings: market price estimate, known model problems, inspection checklist, negotiation plan and running costs.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "DealScore",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "options_page": "src/popup/popup.html",
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "commands": {
+    "toggle-panel": {
+      "suggested_key": { "default": "Alt+Shift+D" },
+      "description": "Show / hide the DealScore panel"
+    }
+  },
   "content_scripts": [
     {
-      "matches": ["https://www.avto.net/Ads/details.asp*"],
+      "matches": ["https://www.avto.net/Ads/details.asp*", "https://avto.net/Ads/details.asp*"],
       "js": [
-        "scoring/modelRiskDB.js",
-        "scoring/priceRules.js",
-        "scoring/mileageRules.js",
-        "scoring/ownershipRules.js",
-        "scoring/scoreEngine.js",
-        "ui/overlay.js",
-        "content.js"
+        "src/lib/util.js",
+        "src/lib/data.js",
+        "src/data/knownIssues.js",
+        "src/lib/market.js",
+        "src/lib/scoring.js",
+        "src/lib/insights.js",
+        "src/lib/parser.js",
+        "src/lib/store.js",
+        "src/lib/eu.js",
+        "src/content/details.js"
       ],
-      "css": ["ui/overlay.css"],
-      "run_at": "document_end"
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.avto.net/Ads/results*", "https://avto.net/Ads/results*"],
+      "js": [
+        "src/lib/util.js",
+        "src/lib/data.js",
+        "src/data/knownIssues.js",
+        "src/lib/market.js",
+        "src/lib/scoring.js",
+        "src/lib/insights.js",
+        "src/lib/parser.js",
+        "src/lib/store.js",
+        "src/content/results.js"
+      ],
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
-  {
-    "resources": [
-      "issues.json",
-      "marketPrices.json",
-      "sloveniaPopularity.json"
-    ],
-    "matches": ["https://www.avto.net/*"]
-  }
+    {
+      "resources": ["issues.json", "marketPrices.json", "popularity.json", "src/ui/panel.css", "src/ui/results.css"],
+      "matches": ["https://www.avto.net/*", "https://avto.net/*"]
+    }
   ],
-  "permissions": ["storage"]
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.autoscout24.com/*"]
 }
