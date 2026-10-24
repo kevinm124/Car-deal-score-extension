@@ -25,10 +25,13 @@ CDS.scoring = (() => {
   // A phrase preceded by a negation ("vozilo NI BILO karambolirano", "brez rje") means the opposite:
   // rules with `neg` then count as that positive statement instead; others are simply ignored.
   const TEXT_RULES = [
-    { id: 'damage', re: /karambol\w*|poškodovan\w*|poskodovan\w*|po nesreči|po nesreci|toča|toco|toce\b|hail/i, kind: 'red', cat: 'history', pts: -45, cap: 45,
+    { id: 'damage', re: /karambol\p{L}*|poškodovan\p{L}*|poskodovan\p{L}*|po nesreči|po nesreci|toč[aeio](?!\p{L})|toc[aeio](?!\p{L})|toča poškodb\p{L}*/iu, kind: 'red', cat: 'history', pts: -45, cap: 45,
       label: 'Listing mentions accident or body damage', neg: { kind: 'good', pts: 6, label: 'Seller states it was never in an accident' } },
-    { id: 'faulty', re: /v okvari|ne vžge|ne vzge|nevozn\w*|ne vozi|za dele|okvara motorja|okvara menjalnika/i, kind: 'red', cat: 'history', pts: -50, cap: 35, label: 'Listing says the car is faulty or not drivable' },
-    { id: 'papers', re: /brez prometnega|brez dokumentov|brez papirjev|tuje tablice|odjavljen\w*/i, kind: 'red', cat: 'history', pts: -25, cap: 55, label: 'Paperwork / registration problem mentioned' },
+    { id: 'scratches', re: /prask[aeio]\p{L}*|odrgnin\p{L}*|udrtin\p{L}*|udarnin\p{L}*|poškodb\p{L}*|poskodb\p{L}*/iu, kind: 'warn', cat: 'age', pts: -6,
+      label: 'Minor body damage mentioned (scratches, dents)', neg: { kind: 'good', pts: 3, label: 'Seller states no damage' } },
+    { id: 'faulty', re: /v okvari|ne vžge|ne vzge|nevozn\w*|ne vozi|(prodam|samo|primeren|primerno|vozilo|avto) za dele|za rezervne dele|okvara motorja|okvara menjalnika/i, kind: 'red', cat: 'history', pts: -50, cap: 35, label: 'Listing says the car is faulty or not drivable' },
+    { id: 'papers', re: /brez prometnega|brez dokumentov|brez papirjev|tuje tablice/i, kind: 'red', cat: 'history', pts: -25, cap: 55, label: 'Paperwork / registration problem mentioned' },
+    { id: 'deregistered', re: /odjavljen\p{L}*/iu, kind: 'warn', cat: 'history', pts: -4, label: 'Car is deregistered – budget for inspection and re-registration' },
     { id: 'service', re: /servisn[ae] knjig\w*|servisno knjigo|redno servisiran\w*|servisiran\w* v pooblašč\w*|servisiran\w* pri/i, kind: 'good', cat: 'history', pts: 12,
       label: 'Service history documented', neg: { kind: 'warn', pts: -8, label: 'No service book' } },
     { id: 'firstOwner', re: /prvi lastnik|1\. lastnik|en lastnik|1 lastnik/i, kind: 'good', cat: 'history', pts: 6, label: 'Seller says first owner' },
@@ -38,7 +41,8 @@ CDS.scoring = (() => {
     { id: 'belt', re: /(menjan|zamenjan|nov)[a-zčšž]*\s+(zobat[a-zčšž]*\s+)?jermen|jermen (je )?(menjan|zamenjan)|(menjana|nova) veriga/i, kind: 'good', cat: 'reliability', pts: 8, label: 'Timing belt/chain recently replaced' },
     { id: 'tyres', re: /nov[ae]? (zimske |letne )?gume|nove pnevmatike/i, kind: 'good', cat: 'age', pts: 3, label: 'New tyres' },
     { id: 'import', re: /\buvoz\w*|uvožen\w*|uvozen\w*|iz nemčije|iz nemcije|iz italije|iz avstrije/i, kind: 'info', cat: 'history', pts: -4, label: 'Imported – verify history abroad (carVertical / Autodna)' },
-    { id: 'light', re: /lučka|lucka|check engine|napaka na/i, kind: 'warn', cat: 'reliability', pts: -12, label: 'Warning light or fault mentioned' },
+    // Dashboard warnings only – "stropna lučka" (ceiling light) is equipment, not a fault.
+    { id: 'light', re: /(gori|sveti|svetl|prižgan|prizgan|javlja)\p{L}* (kontrolna )?lu[čc]k\p{L}*|lu[čc]k\p{L}* (za |motor|abs|airbag|olj|sve[čc]|check|epc|dpf|esp|gori|sveti)\p{L}*|check engine|napaka na/iu, kind: 'warn', cat: 'reliability', pts: -12, label: 'Warning light or fault mentioned' },
     { id: 'rust', re: /\brja\b|\brje\b|rjav[ai]\b|korozij\w*/i, kind: 'warn', cat: 'age', pts: -12, label: 'Rust/corrosion mentioned', neg: { kind: 'good', pts: 3, label: 'Seller states no rust' } },
     { id: 'leak', re: /pušča|pusca|puščanje|kaplja olje/i, kind: 'warn', cat: 'reliability', pts: -10, label: 'Leak mentioned' },
     { id: 'repairs', re: /potrebn[oa] (popravil|menjav|servis)\w*|potrebuje (popravil|menjav|servis)\w*/i, kind: 'warn', cat: 'reliability', pts: -12, label: 'Seller says repairs are needed' },
@@ -49,22 +53,30 @@ CDS.scoring = (() => {
   // "ni bilo", "brez", "nikoli" ... within the two words before a phrase negate it.
   const NEGATION = /(?:^|[\s,(/])(ni|niso|ne|nikoli|brez|nobene|noben|nima|nimajo)\s+(?:\S+\s+){0,2}$/i;
 
+  // Dealer advertising for their own services ("kleparsko ličarske storitve", "popravilo poškodb",
+  // "zavarovanje vozil") says nothing about this car, so warnings are not taken from such lines.
+  const BOILERPLATE = /nudimo|ponujamo|storitv|servisiranje vozil|kleparsk|ličarsk|licarsk|vulkanizer|popravil\p{L}* (vozil|poškodb|karambol)|odprav\p{L}* poškodb|zavarovanj|kasko|leasing|lizing|kredit|odkup|menjava staro|financiranj/iu;
+
   // Every occurrence of a rule in the text, with the line it came from (the quote) and whether it is negated.
+  // Matches must start a word: "toča" (hail) must not fire inside "istočasno".
   function findPhrases(rule, text) {
     const out = [];
-    const re = new RegExp(rule.re.source, 'gi');
+    const re = new RegExp(rule.re.source, 'giu');
     for (const rawLine of String(text || '').split('\n')) {
       const line = rawLine.replace(/\s+/g, ' ').trim();
       if (!line) continue;
+      if (rule.kind !== 'good' && BOILERPLATE.test(line)) continue;
       re.lastIndex = 0;
       let m;
       while ((m = re.exec(line))) {
+        if (re.lastIndex === m.index) re.lastIndex++;
         const before = line.slice(Math.max(0, m.index - 30), m.index);
-        // Also "nepoškodovan" / "nekarambolirano" written as one word.
-        const negated = NEGATION.test(before) || /ne$/i.test(before);
+        // "nepoškodovan" / "nekarambolirano" written as one word: a "ne" prefix negates.
+        const prefixNe = /(?:^|[^\p{L}])ne$/iu.test(before);
+        if (/\p{L}$/u.test(before) && !prefixNe) continue;
+        const negated = prefixNe || NEGATION.test(before);
         const quote = line.length > 110 ? `…${line.slice(Math.max(0, m.index - 40), m.index + 70).trim()}…` : line;
         out.push({ match: m[0], quote, negated });
-        if (re.lastIndex === m.index) re.lastIndex++;
       }
     }
     return out;
