@@ -191,3 +191,48 @@ test('an engine size in the title rules out issues for other engines', () => {
   assert.ok(!r.items.some(i => i.id === 'psa-puretech'), 'a 1.6 THP is not a 1.2 PureTech');
   assert.ok(r.items.some(i => i.id === 'psa-thp'));
 });
+
+test('damage words only match whole words and ignore dealer boilerplate', () => {
+  const flagged = d => CDS.scoring.evaluate(car({ description: d })).flags.some(f => f.kind === 'red');
+  assert.ok(!flagged('istočasno opravljen servis avtomatskega menjalnika'), '"toča" inside "istočasno"');
+  assert.ok(!flagged('Opravljen tehnični pregled in servis'));
+  assert.ok(!flagged('Nudimo kleparsko ličarske storitve in popravilo poškodb po toči'));
+  assert.ok(flagged('avto je bil poškodovan v toči'));
+  const scratches = CDS.scoring.evaluate(car({ description: 'manjše praske na odbijaču' }));
+  assert.ok(!scratches.flags.some(f => f.kind === 'red'));
+  assert.ok(scratches.textHits.some(h => h.id === 'scratches'));
+});
+
+test('shared engine families cross brands only on matching engines', () => {
+  const ids = c => (CDS.knownIssues.match(c)?.items || []).map(i => i.id);
+  // Toyota used BMW's N47 diesel 2014–2018
+  assert.ok(ids({ make: 'TOYOTA', model: 'AVENSIS', variant: '2.0 D-4D', title: 'Toyota Avensis 2.0 D-4D', year: 2016, fuel: 'diesel', ccm: 1995 }).includes('toy-n47'));
+  // Mercedes A 180 d is the Renault 1.5 dCi, not the OM651 2.1
+  const a180 = ids({ make: 'MERCEDES-BENZ', model: 'A-RAZRED', variant: 'A 180 D', year: 2014, fuel: 'diesel', gearbox: 'manual', ccm: 1461 });
+  assert.ok(a180.includes('mb-om607') && !a180.includes('mb-om651') && !a180.includes('rn-k9k'));
+  // Volvo D2 uses the PSA 1.6 diesel
+  assert.ok(ids({ make: 'VOLVO', model: 'V40', variant: 'D2', year: 2014, fuel: 'diesel', ccm: 1560 }).includes('psa-dv6'));
+  // A model not listed by name still gets its engine family
+  assert.ok(ids({ make: 'KIA', model: 'CARENS', variant: '1.7 CRDI', year: 2014, fuel: 'diesel', ccm: 1685 }).includes('hk-crdi'));
+  // No cross-contamination
+  assert.ok(!ids({ make: 'OPEL', model: 'ASTRA', variant: '1.6 16V', year: 2012, fuel: 'petrol', ccm: 1598 }).includes('psa-thp'));
+  assert.ok(!ids({ make: 'FIAT', model: 'PUNTO', variant: '1.4 16V', year: 2010, fuel: 'petrol', ccm: 1368 }).includes('fca-multiair'));
+  assert.ok(!ids({ make: 'LAND ROVER', model: 'RANGE', variant: 'ROVER EVOQUE 2.0 TD4', title: 'Land Rover Range Rover Evoque 2.0 TD4', year: 2017, fuel: 'diesel', gearbox: 'automatic', ccm: 1999 }).includes('jlr-air'));
+});
+
+test('"za dele" only flags cars sold for parts, not parts invoices', () => {
+  const red = d => CDS.scoring.evaluate(car({ description: d })).flags.some(f => f.kind === 'red');
+  assert.ok(!red('v zadnjem mesecu zamenjano skoraj vse možno, račun za dele za 2000eur'));
+  assert.ok(red('prodam za dele'));
+  assert.ok(red('TURBINA V OKVARI'));
+});
+
+test('warning-light rule ignores interior lights; deregistration is only a warning', () => {
+  const hit = (d, id) => CDS.scoring.evaluate(car({ description: d })).textHits.some(h => h.id === id);
+  assert.ok(!hit('stropna lučka, ambientna osvetlitev', 'light'));
+  assert.ok(hit('GORI LUČKA ZA MOTOR IN JAVLJA 4. GRELNO SVEČO', 'light'));
+  assert.ok(hit('svetli lučka za svečke', 'light'));
+  const dereg = CDS.scoring.evaluate(car({ description: 'Vozilo je odjavljeno.' }));
+  assert.ok(dereg.textHits.some(h => h.id === 'deregistered'));
+  assert.ok(!dereg.flags.some(f => f.kind === 'red'));
+});

@@ -113,6 +113,8 @@ CDS.data = (() => {
     const add = k => { if (k && !keys.includes(k)) keys.push(k); };
     // Generation / body hints ("GOLF 7", "A4 B8")
     if (v[0] && /^(\d|[A-Z]\d{1,2}$|MK\d)/.test(v[0]) && v[0].length <= 3) add(`${mk} ${md} ${v[0]}`);
+    // Two-word model names ("RANGE ROVER", "C4 PICASSO", "GRAND SCENIC")
+    if (v[0] && /^[A-Z][A-Z-]{2,}$/.test(v[0]) && !/^(TDI|TSI|TFSI|FSI|HDI|DCI|TCE|CDI|CDTI|CRDI|GTI|GTD|VTI|THP|JTD|JTDM|MJET|SDI|TDCI|AUT|AVT|DSG)$/.test(v[0])) add(`${mk} ${md} ${v[0]}`);
     add(`${mk} ${md}`);
     // BMW "serija 3" lists engines as 320d / 330e -> DB keys are "BMW 320"
     const engine = v.find(t => /^\d{3}[A-Z]{0,2}$/.test(t));
