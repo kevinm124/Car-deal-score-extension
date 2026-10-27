@@ -1,0 +1,132 @@
+# avto.net make -> model list (search form, October 2026). One make per line: Make::model;model;...
+Abarth::Abarth124;595;695
+Aeolus::A60;A70;AX7;E70;Haohan;Haoji;L7;L8;Sky EV01;Yixuan;Yixuan GS;Yixuan Max
+Aiways::U5;U6
+Aito::M9
+Aixam::City;Coupe;Cross;MinAuto;Roadline;Scouty R
+Alfa Romeo::33;AlfaRomeo75;90;145;146;147;155;156;156---Sportwagon;159;159---Sportwagon;164;166;4C;8C;1750;Alfasud;Alfetta;Brera;Crosswagon;Giulia;Giulietta;AlfaRomeoGT;GTV;Junior;MiTo;RZ;SZ;Spider;Sprint;Stelvio;Tonale
+Alpine::A110;A290;A390
+Aro::10;24
+Aston Martin::Cygnet;DB;DB7;DB9;DB11;DB12;DBS;DBX;Lagonda;One-77;Rapide;V8;Vantage;Vanquish;Virage;Volante;Zagato
+Audi::50;60;80;90;100;200;A1;S1;A2;A2 e-tron;A3;A3---Cabriolet;S3;S3---Cabriolet;RS3;AudiA4;A4---Avant;A4---Cabriolet;A4---Allroad;S4;S4---Cabriolet;RS4;RS4 Avant;A5;A5---Avant;A5---Cabriolet;A5---Sportback;S5;S5---Avant;S5---Sportback;RS5;RS5---Cabriolet;AudiA6;A6---Avant;A6---Allroad;A6 Avant e-tron;A6 Sportback e-tron;S6;RS6;RS6 Avant;A7;S7;RS7;A8;S8;AudiCoupe;Cabriolet;Audie-tron;e-tron GT;e-tron Sportback;Q1;Q2;SQ2;Q3;Q3 Sportback;RS Q3;RS Q3 Sportback;Q4 e-tron;Q4 Sportback e-tron;Q5;Q5 Sportback;SQ5;Q6 e-tron;Q6 Sportback e-tron;SQ6 e-tron;SQ6 Sportback e-tron;Q7;SQ7;Q8;SQ8;RS Q8;Q8 e-tron;Q8 e-tron Sportback;R8;RS2;S2;TT;TTS;TT RS;V8
+Austin::Metro;Mini
+Autobianchi::A112;Bianchina;Primula
+BAIC::X55;X7;BJ30;BJ40 PRO;BJ60
+Bertone::Freeclimber
+BAW 212::T01 Adveturer;Pickup
+Bellier::Asso;Atoll;B8;Cabriolet;Divane;Jade;Opale;Sturdy;VX
+Bentley::Arnage;Azure;Bentayga;Brooklands;Continental;Eight;Flying Spur;Mulsanne;Tarcal;Turbo
+BMW::1802;2002;i3;i4;i5;i7;i8;iX;iX1;iX2;iX3;iX4;iX5;M1;serija 1:;serija 1 Coupe:;serija 1 Cabrio:;1M Coupe;serija 2:;serija 2 Coupe:;serija 2 Cabrio:;serija 2 Active Tourer:;serija 2 Gran Tourer:;serija 2 Gran Coupe:;M2;serija 3:;serija 3 Touring:;serija 3 Compact:;serija 3 Coupe:;serija 3 Cabrio:;serija 3 Gran Turismo:;M3;serija 4 Coupe:;serija 4 Cabrio:;serija 4 Gran Coupe:;M4;serija 5:;serija 5 Touring:;serija 5 Gran Turismo:;M5;serija 6 Coupe:;serija 6 Cabrio:;serija 6 Gran Turismo:;serija 6 Gran Coupe:;M6;serija 7:;serija 8 Coupe:;serija 8 Cabrio:;serija 8 Gran Coupe:;M8;serija X1:;serija X2:;serija X3:;serija X4:;serija X5:;serija X6:;serija X7:;XM;Z1;Z3;Z4;Z8
+Borgward::BX3;BX5;BX7
+Bugatti::EB 110;Veyron;Chiron
+BYD::Atto 2;Atto 3;Dolphin Surf;Han;Leopard 8;Seal;Seal 6;Seal U;Sealion 5;Sealion 7;Tang
+Cadillac::Allante;ATS;BLS;DeVille;CT5;CT6;CTS;Eldorado;Escalade;Fleetwood;Seville;SRX;STS;XLR;XTS
+Caterham::Seven
+Changan::CS55 Plus;CS75 Plus;Deepal S05;Deepal S07
+Chatenet::Stella;Media;Barooder;Speedino;CH
+Chevrolet::Astro;Avalanche;Aveo;Beretta;Blazer;Camaro;Captiva;Cavalier;Corvette;Cruze;Epica;Equinox;Evanda;HHR;Kalos;Lacetti;Lumina;Malibu;Matiz;Nubira;Orlando;Rezzo;Spark;Suburban;Tacuma;Tahoe;TrailBlazer;Trans Sport;Trax;Volt
+Chrysler::300C;300M;Crossfire;ES;Le Baron;Neon;New Yorker;Pacifica;PT Cruiser;Saratoga;Sebring;Stratus;Viper;Vision;Voyager;Grand Voyager
+Citroën::2 CV;Ami;AX;Berlingo;BX;C1;C2;C3;C3 Aircross;C3 Picasso;C3 Pluriel;C4;C4 Aircross;C4 Cactus;C4 Picasso;C4 Grand Picasso;C4 SpaceTourer;C4 Grand SpaceTourer;C4 X;C5;C5 Aircross;C5 X;C6;C8;C-Crosser;C-Elysee;C-Zero;CX;CitroenDS;DS3;DS4;DS5;Dyane;Evasion;GS;GSA;Jumpy;LN;Lomax;Nemo;Saxo;SM;SpaceTourer;Visa;Xantia;CitroenXM;Xsara;Xsara Picasso;ZX
+Cupra::Ateca;Born;Formentor;Leon;Raval;Tavascan;Terramar
+Dacia::Bigster;Dokker;Duster;Jogger;Lodgy;Logan;Sandero;Spring;Striker
+Daewoo::Chairman;Espero;Evanda;Kalos;Korando;Lacetti;Lanos;Leganza;Matiz;Musso;Nexia;Nubira;Racer;Tacuma;Tico
+DAF::Daffodil
+Daihatsu::Applause;Charade;Copen;Cuore;Feroza;Freeclimber;Gran Move;Materia;Move;Rocky;Sirion;Terios;Trevis;YRV
+DFSK::Seres 3;Seres 5
+DKW::Junior
+Dodge::Avenger;Caliber;Caravan;Challenger;Charger;Durango;Journey;Magnum;Nitro;RAM;Stealth;Viper
+Dongfeng::Box;Huge;Mage;M-Hero;Shine
+DR Automobiles::City Cross;DR 1;DR 1.0;DR 2;DR 3;DR 3.0;DR 4;DR 5;DR 5.0;DR 6;DR 6.0;DR 7;DR 7.0;DR EVO5;DR F35;DR PK8;DR Zero
+DS Automobiles::DS 3;DS 3 Crossback;DS 4;DS 4 Crossback;DS 5;DS 7;DS 7 Crossback;DS 9;N°4;N°7;N°8
+EVO::EVO3;EVO4;EVO5;EVO7;Cross4
+Ferrari::12 Cilindri;208;296;308;328;348;355;360;365;400;412;430;456;458;488;512;550 Maranello;575;599;612 Scaglietti;812;Amalfi;California;Daytona SP3;Dino;Enzo;F8;F12;F40;F50;F80;FF;GTC4Lusso;GTO;LaFerrari;Luce;Mondial;Monza;Portofino;Purosangue;Roma;Superamerica;SF90;Testarossa
+Fiat::1100;124;124 Spider;125;126;127;130;131;132;500;500C;500L;500X;600;850;1500;Albea;Argenta;Barchetta;Brava;Bravo;Campagnola;Cinquecento;FiatCoupe;Croma;Dino;Doblo;Freemont;Fullback;Idea;Grizzly;Grizzly Fastback;Linea;Marea;Multipla;Palio;Panda;Pandina;Grande Panda;Punto;Qubo;Regata;Ritmo;Scudo;Sedici;Seicento;FiatSpider;Stilo;Talento;Tempra;Tipo;Topolino;Ulysse;Uno;X 1/9
+Fisker::Karma;Ocean
+Ford::Aerostar;Bronco;B-Max;C-Max;Grand C-Max;Capri;Cougar;Ecosport;Edge;Escort;Excursion;Expedition;Explorer;Explorer EV;F-150;Fiesta;Focus;Fusion;Galaxy;Granada;FordGT;Ka;Kuga;Maverick;Mondeo;Mustang;Mustang Mach-E;Orion;Probe;Puma;Ranger;S-Max;Scorpio;Sierra;StreetKa;Taunus;Taurus;Thunderbird;Tourneo;Tourneo Courier;E-Tourneo Courier;Tourneo Connect;Tourneo Custom;E-Tourneo Custom;Transit;Transit Custom;E-Transit Custom;Windstar
+Forthing::ForthingS7;T5 Evo;T5 Evo EV;U-Tour;V9
+Foton::Tunland G7;Tunland V7;Tunland V9;ETunland
+Geely::Atlas Pro;CityRay;CoolRay;EX5;Galaxy Cruiser 700;Galaxy TT;StarRay;StarRay EM-i
+Genesis::G70;G80;G90;GV60;GV70;GV80
+Greatwall::Hover
+Grecav::Sonique
+Honda::Accord;Civic;Concerto;CR-V;CR-Z;Crosstar;CRX;e;FR-V;HR-V;Insight;Integra;Jazz;Legend;Logo;NSX;Odyssey;Pilot;Prelude;S2000;Shuttle;Stream;ZR-V
+Hongqi::E-HS9;EH7;EHS7;H5;H9;HS3;HS5
+Hummer::H1;H2;H3
+Hyundai::Accent;Atos;Bayon;HyundaiCoupe;Elantra;Excel;Galloper;Genesis;Getz;Grandeur;H-1;H100;i10;i20;i30;i30---Wagon;i30---Fastback;i40;ix20;ix35;ix55;Inster;Ioniq;Ioniq 3;Ioniq 5;Ioniq 6;Ioniq 9;Kona;Lantra;Matrix;Pony;S-Coupe;Santa Cruz;Santa Fe;Grand Santa Fe;Santamo;Sonata;Staria;Terracan;Trajet;Tucson;Veloster;XG
+iCaur::V23;V25;V27
+Infiniti::G Coupe;G Cabrio;G;M;EX;FX;JX;QX;Q30;Q50;Q60;Q70;QX50;QX55;QX60;QX70;QX80
+Isuzu::Amigo;Campo;D-Max;Gemini;Mu;Trooper
+Iveco::Massif
+JAC::e-S4;iEV7S
+Jaecoo::Jaecoo5;Jaecoo7;Jaecoo7 SHS
+Jaguar::Daimler;MX-II;E-Type;E-Pace;F-Pace;F-Type;I-Pace;S-Type;X-Type;XE;XF;XJ;XJS;XK
+Jeep::Avenger;CJ;Cherokee;Commander;Compass;Gladiator;Grand Cherokee;Patriot;Renegade;Wagoneer;Willys;Wrangler
+Kia::Carens;Carnival;Ceed;Ceed---SW;Pro_Ceed;Proceed;Cerato;Clarus;Elan;EV2;EV3;EV4;EV5;EV6;EV9;Forte;Joice;K4;Magentis;Niro;Opirus;Optima;Picanto;Pride;PV5;Retona;Rio;Rocsta;Seltos;Sephia;Sorento;Soul;Spectra;Sportage;Stinger;Stonic;Venga;XCeed
+KG Mobility::Korando;Musso;Rexton;Tivoli;Torres
+KTM::X-Bow
+Lada::110;111;112;1300;1500;Desetka;Aleko;Granta;Kalina;Karavan;Niva;Nova;Samara;Vesta
+Lamborghini::Aventador;Countach;Diablo;Espada;Fenomeno;Gallardo;Huracan;Jalpa;LM002;Miura;Murcielago;Revuelto;Temerario;Urus
+Lancia::Beta;Dedra;Delta;Flavia;Fulvia;Kappa;Lybra;Musa;Phedra;Prisma;Stratos;Thema;Thesis;Voyager;LanciaY;Ypsilon;Zeta
+LandRover::Defender;Discovery;Discovery Sport;Freelander;Range Rover;Range Rover Evoque;Range Rover Evoque Convertible;Range Rover Sport;Range Rover Velar
+Leapmotor::T03;B03X;B05;B10;C10
+Lepas::L4;L6;L8
+Lexus::CT;ES;GS;GX;IS;LBX;LC;LFA;LM;LS;LX;NX;RC;RX;RZ;SC;TZ;UX
+Ligier::162;Ambra;Be Sun;Be Up;IXO;JS;Myli;Nova;Optima;Pulse;X-Too
+Lincoln::Aviator;Continental;Corsair;MKZ;Nautilus;Navigator
+London Taxi::FX series;Fairway series;TX series
+Lotus::3-Eleven;340R;Elan;Eletre;Elise;Emeya;Esprit;Europa;Evora;Excel;Exige;Super seven
+Lynk&Co::01;02;08;900
+Maserati::222;224;228;418;420;422;424;430;GT 3200;Biturbo;MaseratiCoupe;Ghibli;GranSport;GranTurismo;GranCabrio;Grecale;Levante;MC20;Quattroporte;Shamal;Spyder
+Maxus::eTerron;Euniq 6;Mifa 9;T60;T90
+Maybach::57;62;Guard;Landaulet
+Mazda::121;323;626;929;BT-50;CX-3;CX-30;CX-50;CX-60;CX-6e;CX-80;CX-5;CX-7;CX-9;Demio;Mazda2;Mazda3;Mazda5;Mazda6;Mazda6e;MPV;MX-3;MX-5;MX-6;MX-30;Premacy;RX-7;RX-8;Tribute;Xedos 6;Xedos 9
+McLaren::12C;540C;570S;600LT;620R;675LT;720S;765LT;Artura;Elva;F1;GT;P1;Senna;Speedtail
+Mercedes-Benz::190;W123;AMG GT Coupe;AMG GT Roadster;AMG GT 4-vratni Coupe;AMG GT SUV;AMG One;A-Razred;B-Razred;C-Razred;Citan;CL-Razred;CLA-Razred;CLA Shooting Brake;CLC-Razred;CLE-Razred;CLK-Razred;CLS-Razred;CLS Shooting Brake;E-Razred;EQA;EQB;EQC;EQE;EQS;EQS SUV;EQT;EQV;G-Razred;GL-Razred;GLA-Razred;GLB-Razred;GLC-Razred;GLC coupe;GLE-Razred;GLE coupe;GLK-Razred;GLS-Razred;ML-Razred;R-Razred;S-Razred;SL-Razred;SLC-Razred;SLS AMG;SLK-Razred;SLR-Razred;T-Razred;V-Razred;VLE-Razred;Vaneo;Viano;Vito;X-Razred
+MG::Cyberster;EHS;F;GS;HS;IM5;IM6;Marvel R;MG3;MG4;MG5;MGS5 EV;TF;ZR;ZS;ZS EV
+Microcar::M.GO;Family Luxe;Lyra;ALCO;NewStreet;Pratic Luxe;Virgo
+MINI::Aceman;MINICabrio;Clubman;Cooper;Countryman;MINICoupe;One;Paceman;Roadster
+Mitsubishi::3000 GT;ASX;Carisma;Colt;Diamante;Eclipse;Eclipse Cross;Galant;Grandis;i-MiEV;L 200;L 300;Lancer;Outlander;Pajero;Pajero Pinin;Pajero Sport;Sigma;Space Gear;Space Runner;Space Star;Space Wagon;Starion
+MPM Motors::PS160;Erelis
+Nissan::100NX;200SX;280ZX;300ZX;350Z;370Z;Almera;Almera Tino;Altima;Ariya;Bluebird;Cherry;Cube;e-NV200;Evalia;GT-R;Juke;King Cab;Leaf;Maxima;Micra;Micra---CC;Murano;Navara;Note;NV200;NV300;Pathfinder;Patrol;Pick Up;Pixo;Prairie;Primera;Pulsar;Qashqai;Quest;Serena;Silvia;Skyline;Sunny;Terrano;Tiida;Townstar;Vanette;X-Trail
+NSU::Prinz;RO-80
+Omoda::Omoda4;Omoda5;Omoda5 EV;Omoda5 SHS-H;Omoda7;Omoda9
+Opel::Adam;Agila;Ampera;Antara;Ascona;Astra;Calibra;Campo;Cascada;Combo;Commodore;Corsa;Crossland;Crossland X;Diplomat;Frontera;Grandland;Grandland X;OpelGT;Insignia;Kadett;Karl;Manta;Meriva;Mokka;Mokka X;Monterey;Monza;Olympia;Omega;Rekord;Rocks-e;Senator;Signum;Sintra;Speedster;Tigra;Vectra;Zafira
+Peugeot::104;106;107;108;1007;204;205;206;207;208;2008;301;304;305;306;307;308;309;3008;E-3008;404;405;406;407;408;4007;4008;504;505;508;5008;E-5008;604;605;607;806;807;Bipper;Expert;iOn;Partner;Pick Up;RCZ;Rifter;Traveller
+Piaggio::Porter Van
+Polestar::Polestar1;Polestar2;Polestar3;Polestar4 Coupe;Polestar4 SUV;Polestar5
+Pontiac::Bonneville;Fiero;Firebird;Trans Am;Grand Am;Grand Prix;Trans Sport
+Porsche::356;718 Boxster;718 Cayman;911;911---Cabriolet;911---Targa;912;914;924;928;944;959;968;Boxster;Cayenne;Cayenne Coupe;Cayman;Carrera GT;Macan;Panamera;Panamera---Sport Turismo;Taycan;Taycan---Sport Turismo;Taycan---Cross Turismo
+Proton::serija 300:;serija 400:;Persona
+Puch::G-Razred
+Renault::R 4;4 E-Tech;R 5;5 E-Tech;R 8;R 9;R 10;R 11;R 12;R 14;R 16;R 18;R 19;R 20;R 21;R 25;R 30;Alaskan;Alpine;Arkana;Austral;Avantime;Captur;Clio;Espace;Grand Espace;Fluence;Fuego;Kadjar;Kangoo;Grand Kangoo;Koleos;Laguna;Latitude;Megane;Megane Conquest;Megane E-Tech;Modus;Grand Modus;Rafale;Safrane;Scenic;Grand Scenic;Scenic E-Tech;Sport Spider;Symbioz;Talisman;Thalia;Twingo;Twizy;Vel Satis;Wind;Zoe
+Rolls-Royce::Corniche;Cullinan;Dawn;Flying Spur;Ghost;Park Ward;Phantom;Silver Cloud;Silver Dawn;Silver Seraph;Silver Shadow;Silver Spirit;Silver Spur;Wraith
+Rover::25;45;75;serija 100:;serija 200:;serija 400:;serija 600:;serija 800:;City Rover;Metro;Montego;Streetwise
+Saab::9-3;9-3x;9-4x;9-5;9-7x;90;96;99;900;9000
+Seat::Alhambra;Altea;Altea Freetrack;Altea XL;Arosa;Arona;Ateca;Cordoba;Exeo;Ibiza;Inca;Leon;Marbella;Malaga;Mii;Tarraco;Toledo
+Seres::3;5;7
+Shuanghuan::Ceo
+Škoda::S 105;S 120;Citigo;Elroq;Enyaq;Epiq;Fabia;Favorit;Felicia;Forman;Kamiq;Karoq;Kodiaq;Octavia;Peaq;Rapid;Roomster;Scala;Superb;Yeti
+Smart::hashtag1;hashtag3;hashtag5;city cabrio;city coupe;crossblade;forfour;fortwo;fortwo cabrio;roadster
+Spyker::C8
+SsangYong::Actyon;Korando;Kyron;Musso;Rexton;Rodius;Tivoli;Tivoli Grand;Torres;XLV
+Subaru::700 SDX;Ascent;Baja;BRZ;Crosstrek;E-Outback;Forester;Impreza;Justy;Legacy;Leone;Levorg;Libero;Outback;Solterra;SVX;Trezia;Tribeca;Uncharted;Vivio;WRX;XT;XV
+Suzuki::Across;Alto;Baleno;Capuccino;Celerio;Ignis;Jimny;Kizashi;Liana;Maruti;Samurai;Splash;Swace;Swift;SX4;SX4 S-Cross;S-Cross;Vitara;e Vitara;Grand Vitara;Wagon R;X-90
+Talbot::Horizon;Samba;Solara
+Tata::Nano;Indica;Indigo;Xenon;Safari
+Tazzari::Zero
+Tesla::Roadster;Model 3;Model S;Model X;Model Y
+Tiger::Six
+Toyota::4-Runner;Auris;Avalon;Avensis;Avensis Verso;Aygo;Aygo X;bZ4X;C-HR;C-HR+;Camry;Carina;Celica;Corolla;Corolla Cross;Corolla Verso;Crown;FJ;GR Yaris;GR86;GT86;Hilux;HiAce;Highlander;IQ;Land Cruiser;Mirai;MR2;LiteAce;Paseo;Picnic;Previa;Prius;Proace Verso;Proace City Verso;RAV4;Starlet;Supra;Tercel;Urban Cruiser;Verso;Verso-S;Yaris;Yaris Cross;Yaris Verso
+Trabant::601;Cabrio
+Triumph::Dolomite;Moss;Spitfire;TR3;TR4;TR5;TR6;TR7;TR8
+VinFast::VF6;VF7;VF8
+Volta::EV1;EV2;V1
+Volvo::240;340;360;440;460;480;740;760;780;850;940;960;C30;C40;C70;EM90;ES90;EX30;EX60;EX90;S40;S60;S60 Cross Country;S70;S80;S90;V40;V40 Cross Country;V50;V60;V60 Cross Country;V70;V70 XC;V90;V90 Cross Country;XC40;XC60;XC70;XC90
+Volkswagen::Amarok;Arteon;Arteon---Shooting Brake;Beetle;Bora;Buggy;Caddy;California;Caravelle;CC;Corrado;Derby;Eos;Fox;Golf;Golf---Variant;Golf---Plus;Golf---Sportsvan;Crossgolf;Hrošč;ID.3;ID.4;ID.5;ID.7;ID.Buzz;ID.Polo;Jetta;Karmann Ghia;Lupo;Multivan;Passat;Passat---Variant;Passat---Alltrack;Passat---CC;Phaeton;Polo;CrossPolo;Santana;Scirocco;Sharan;Shuttle;Taigo;Taro;Tayron;Tiguan;Tiguan Allspace;Touareg;Touran;CrossTouran;T-Cross;T-Roc;T-Roc---Cabriolet;Transporter;up!;Vento;XL1
+Voyah::Courage;Free
+XEV::Yoyo
+Xiaomi::SU7
+Xpeng::G6;G9;L03;P7;P7+;X9
+Zastava::101;128;750;850;1300;1500;Buggy;Yugo;Florida
+Zeekr::001;ZeekrX;7GT;7X;8X;9X
+Zhidou::D1;D2;D2S;D3

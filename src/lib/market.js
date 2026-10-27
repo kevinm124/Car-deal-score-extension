@@ -63,7 +63,7 @@ CDS.market = (() => {
     if (ref && plausible) parts.push({ v: ref.estimate, w: parts.length ? 1 : 2 });
     if (!parts.length && ref) parts.push({ v: ref.estimate, w: 1 });
 
-    const euInfo = euM ? { estimate: Math.round(euM.estimate), rawMedian: Math.round(euM.rawMedian), count: euM.count, total: eu.total, url: eu.url, countries: eu.countries } : (eu ? { count: 0, total: eu.total || 0, url: eu.url } : null);
+    const euInfo = euM ? { estimate: Math.round(euM.estimate), rawMedian: Math.round(euM.rawMedian), count: euM.count, total: eu.total, url: eu.url, countries: eu.countries, level: eu.level || 0 } : (eu ? { count: 0, total: eu.total || 0, url: eu.url } : null);
     if (!parts.length) return { estimate: null, confidence: 'none', source: 'none', comps: local?.count || 0, eu: euInfo };
 
     const wSum = parts.reduce((a, p) => a + p.w, 0);

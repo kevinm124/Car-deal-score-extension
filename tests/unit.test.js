@@ -236,3 +236,23 @@ test('warning-light rule ignores interior lights; deregistration is only a warni
   assert.ok(dereg.textHits.some(h => h.id === 'deregistered'));
   assert.ok(!dereg.flags.some(f => f.kind === 'red'));
 });
+
+test('AutoScout24: unknown model slugs are detected and listings re-checked for engine/gearbox', () => {
+  const page = (mmmv, listings) => `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify({ props: { pageProps: { numberOfResults: listings.length, pageQuery: { mmmv }, listings } } })}</script>`;
+  const l = (price, ccm, transmission, model) => ({ id: String(price), price: { priceRaw: price }, tracking: { price: String(price), firstRegistration: '05-2017', mileage: '100000' }, vehicle: { model, engineDisplacementInCCM: `${ccm.toLocaleString('en')} cc`, transmission }, location: { countryCode: 'DE' } });
+  // "renault/captur-techno" -> AutoScout24 dropped the model and returned every Renault
+  const wrong = CDS.eu.parsePage(page('60|||', [l(9000, 1461, 'Manual', 'Kadjar')]));
+  assert.equal(wrong.modelRecognised, false);
+  const right = CDS.eu.parsePage(page('74|2084||', [l(14000, 1968, 'Manual', 'Golf'), l(9000, 1896, 'Manual', 'Golf'), l(15000, 1968, 'Automatic', 'Golf')]));
+  assert.equal(right.modelRecognised, true);
+  const match = { ccm: 1968, gear: 'M' };
+  const kept = right.listings.filter(x => CDS.eu.comparable(x, match)).map(x => x.price);
+  same(kept, [14000]);   // 1.9 TDI and the automatic are dropped
+});
+
+test('AutoScout24 slugs try multi-word model names first', () => {
+  const slugs = c => CDS.eu.queries(car(c)).map(q => q.slug);
+  assert.equal(slugs({ make: 'CITROEN', model: 'C4', variant: 'GRAND PICASSO 1.6 BLUEHDI' })[0], 'citroen/grand-c4-picasso');
+  assert.equal(slugs({ make: 'LAND ROVER', model: 'RANGE', variant: 'ROVER EVOQUE 2.0 TD4' })[0], 'land-rover/range-rover-evoque');
+  assert.ok(!slugs({ make: 'RENAULT', model: 'CAPTUR', variant: 'TCE 90 TECHNO' }).includes('renault/captur-techno'));
+});
