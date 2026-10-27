@@ -269,6 +269,7 @@
         <div class="feature"><div class="ic">⇣</div><b>Negotiation plan</b><span>Opening offer, target and walk-away price with the arguments to back them up.</span></div>
         <div class="feature"><div class="ic">★</div><b>Watchlist & compare</b><span>Save cars, track price drops and compare up to three side by side.</span></div>
       </div>
+      <p class="disclaimer"><b>DealScore is a guide, not advice.</b> It doesn’t tell you to buy or avoid any car. Scores, price estimates and known issues are automated and can be wrong, and the listing data comes from the seller. Always inspect the car, have a mechanic check it and verify its history before you decide.</p>
       <a class="btn primary" href="https://www.avto.net/" target="_blank" style="text-decoration:none;display:inline-block">Start browsing avto.net →</a>
     </div>`;
   }
