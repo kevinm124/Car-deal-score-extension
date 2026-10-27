@@ -146,35 +146,27 @@ CDS.scoring = (() => {
   }
 
   // Known problems: curated, engine/year-aware list first, the generic DB as a fallback.
+  // Known problems come only from the curated, engine/year-aware database. The old generic
+  // issues.json was mostly filler ("Mechanical wear", "Engine reliable") and is no longer shown.
   function findIssues(car) {
     const curated = CDS.knownIssues.match(car);
-    if (curated && (curated.items.length || curated.positives.length)) {
-      return { source: 'curated', key: curated.key, items: curated.items, positives: curated.positives };
-    }
-    const generic = CDS.data.getIssues(car.make, car.model, car.variant);
-    if (!generic) return { source: 'none', key: null, items: [], positives: [] };
-    const junk = /generally (reliable|dependable)|^engines? (generally )?(reliable|dependable)|^mechanical wear$|^electrical faults$|^engine reliability$/i;
-    return {
-      source: 'generic',
-      key: generic.key,
-      items: generic.value.filter(t => !junk.test(t)).map((t, i) => ({ id: `gen${i}`, title: t, sev: 1, status: 'possible', generic: true })),
-      positives: []
-    };
+    if (!curated) return { source: 'none', key: null, items: [], positives: [] };
+    return { source: 'curated', key: curated.key, items: curated.items, positives: curated.positives };
   }
 
   function categoryScoreReliability(car, issues, out) {
-    if (issues.source === 'none') { out.notes.push({ kind: 'info', text: 'No reliability data for this model.' }); return 72; }
+    if (issues.source === 'none') { out.notes.push({ kind: 'info', text: 'No documented problems on file for this model.' }); return 80; }
     // Expensive, confirmed problems weigh most; "possible" ones (engine/gearbox not confirmed) count half.
     const weight = issues.items.reduce((sum, it) => sum + it.sev * (it.status === 'likely' ? 1 : 0.5), 0);
-    let s = 98 - weight * (issues.source === 'generic' ? 3 : 5.5);
+    let s = 98 - weight * 5.5;
     if (issues.positives.length) s += 5;
     if ((car.mileage || 0) > 150000 && issues.items.some(it => it.sev === 3 && it.status === 'likely')) s -= 6;
 
     const severe = issues.items.filter(it => it.sev === 3 && it.status === 'likely');
     severe.forEach(it => out.notes.push({ kind: 'warn', text: `Known expensive issue: ${it.title}${it.cost ? ` (${it.cost})` : ''}` }));
     const rest = issues.items.length - severe.length;
-    if (rest) out.notes.push({ kind: 'info', text: `${rest} other known issue${rest === 1 ? '' : 's'} for this ${issues.source === 'curated' ? 'model/engine' : 'model (generic data)'}.` });
-    if (!issues.items.length && issues.source === 'curated') out.notes.push({ kind: 'good', text: 'No well-known problems for this engine/year.' });
+    if (rest) out.notes.push({ kind: 'info', text: `${rest} other known issue${rest === 1 ? '' : 's'} for this model/engine.` });
+    if (!issues.items.length) out.notes.push({ kind: 'good', text: 'No well-known problems for this engine/year.' });
     issues.positives.forEach(p => out.notes.push({ kind: 'good', text: p }));
     return clamp(s, 30, 100);
   }

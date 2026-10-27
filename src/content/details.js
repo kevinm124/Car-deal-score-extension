@@ -300,8 +300,12 @@
 
   function issuesTab() {
     const r = state.result;
-    if (r.issuesSource === 'none') return `<div class="muted">No reliability data for ${esc(state.car.make)} ${esc(state.car.model)} yet.</div>`;
-    const positives = (r.categories.find(c => c.id === 'reliability').notes || []).filter(n => n.kind === 'good');
+    const engine = [state.car.ccm ? `${state.car.ccm} ccm` : '', state.car.fuelRaw || state.car.fuel || '', state.car.year || ''].filter(Boolean).join(' · ');
+    if (r.issuesSource === 'none') {
+      return `<div class="good-pill">✓ No documented problems on file for ${esc(state.car.make)} ${esc(state.car.model)} (${esc(engine)}).</div>
+        <p class="muted small">DealScore only lists problems that are well documented for a specific engine, gearbox or model year. This car isn’t in that list – that is not a guarantee, so still use the checklist and get an inspection.</p>`;
+    }
+    const positives = (r.categories.find(c => c.id === 'reliability').notes || []).filter(n => n.kind === 'good' && !/^No well-known problems/.test(n.text));
     const items = r.issues.map(i => `
       <div class="issue">
         <div class="issue-top">
@@ -315,10 +319,8 @@
       </div>`).join('');
     return `
       ${positives.map(p => `<div class="good-pill">✓ ${esc(p.text)}</div>`).join('')}
-      ${items || '<div class="good-pill">✓ No well-known problems match this engine and year.</div>'}
-      <p class="muted small">${r.issuesSource === 'curated'
-        ? 'From DealScore’s curated database of documented problems, matched by year, fuel, engine and gearbox. Common problems – not confirmed on this car.'
-        : 'From the generic model database – less specific; treat as hints.'}</p>`;
+      ${items || `<div class="good-pill">✓ No well-known problems for this engine and year (${esc(engine)}).</div>`}
+      <p class="muted small">From DealScore’s curated database of documented problems, matched by year, fuel, engine and gearbox. Common problems – not confirmed on this car.</p>`;
   }
 
   function inspectTab() {

@@ -4,7 +4,7 @@
   "private": true,
   "description": "DealScore – car deal analyzer browser extension for avto.net",
   "scripts": {
-    "test": "node --test tests/unit.test.js",
+    "test": "node --test tests/unit.test.js tests/data.test.js",
     "build:popularity": "python scriptsExtraction/build_popularity.py",
     "build:icons": "python scriptsExtraction/make_icons.py"
   }
