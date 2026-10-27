@@ -33,25 +33,37 @@ async function fetchPage(url) {
   return data;
 }
 
-// Tries each model slug from strict to relaxed filters until enough listings are found.
+// Tries each model slug from strict to relaxed filters until enough truly comparable
+// listings are found. Searches where AutoScout24 didn't recognise the model are skipped
+// (it would otherwise return every car of the make), and each listing is re-checked for
+// engine size and gearbox because the relaxed searches drop those filters.
 async function euLookup(queries) {
   let best = null;
   for (const q of queries || []) {
-    for (const url of q.urls) {
+    for (const [level, url] of q.urls.entries()) {
       const page = await fetchPage(url);
-      if (!best || page.listings.length > best.listings.length) best = { ...page, url };
-      if (page.listings.length >= MIN_LISTINGS) {
-        let listings = page.listings;
-        if (page.total > listings.length) {
+      if (page.modelRecognised === false) break;   // wrong slug – try the next one
+      let listings = page.listings.filter(l => CDS.eu.comparable(l, q.match));
+      if (listings.length < MIN_LISTINGS && page.total > page.listings.length) {
+        const second = await fetchPage(`${url}&page=2`).catch(() => null);
+        if (second) listings = listings.concat(second.listings.filter(l => CDS.eu.comparable(l, q.match)));
+      }
+      const result = { total: page.total, listings, url, level, countries: [...new Set(listings.map(l => l.country).filter(Boolean))] };
+      if (!best || listings.length > best.listings.length) best = result;
+      if (listings.length >= MIN_LISTINGS) {
+        if (page.total > page.listings.length && listings.length < 30) {
           const second = await fetchPage(`${url}&page=2`).catch(() => null);
-          if (second) listings = listings.concat(second.listings);
+          if (second) {
+            const more = second.listings.filter(l => CDS.eu.comparable(l, q.match) && !listings.some(x => x.id === l.id));
+            result.listings = listings.concat(more);
+            result.countries = [...new Set(result.listings.map(l => l.country).filter(Boolean))];
+          }
         }
-        const countries = [...new Set(listings.map(l => l.country).filter(Boolean))];
-        return { total: page.total, listings, url, countries };
+        return result;
       }
     }
   }
-  return best ? { total: best.total, listings: best.listings, url: best.url, countries: [] } : { total: 0, listings: [], url: null };
+  return best || { total: 0, listings: [], url: null };
 }
 
 chrome.commands.onCommand.addListener(async command => {

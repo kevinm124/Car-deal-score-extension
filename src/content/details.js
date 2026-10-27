@@ -222,10 +222,12 @@
     if (!e) return '';
     if (!e.count) return `<div class="eu"><span class="eu-flag">EU</span><span class="muted">No comparable EU listings found.</span></div>`;
     const d = (state.car.price - e.estimate) / e.estimate;
-    return `<div class="eu">
+    const basis = [state.car.ccm ? `${state.car.ccm} ccm ±3%` : '', state.car.gearboxRaw ? (state.car.gearbox === 'manual' ? 'manual' : 'automatic') : '', `${state.car.year - 1}–${state.car.year + 1}`].filter(Boolean).join(', ');
+    return `<div class="eu" title="Same model, ${esc(basis)}${e.level ? '; search widened for km/power, each listing re-checked for engine and gearbox' : ', similar km and power'}">
       <span class="eu-flag">EU</span>
-      <span><b>${eur(e.estimate)}</b> typical for this year/km · ${e.count} cars${e.countries?.length ? ` (${e.countries.slice(0, 5).join(', ')})` : ''}
-        <span class="${d < 0 ? 'eu-down' : 'eu-up'}">${pct(d)}</span></span>
+      <span><b>${eur(e.estimate)}</b> typical for this year/km · ${e.count} comparable cars${e.countries?.length ? ` (${e.countries.slice(0, 5).join(', ')})` : ''}
+        <span class="${d < 0 ? 'eu-down' : 'eu-up'}">${pct(d)}</span>
+        <span class="small muted" style="display:block">Same model · ${esc(basis)}${e.level ? ' · wider km/power range' : ''}</span></span>
       <a href="${esc(e.url)}" target="_blank" rel="noopener">View ↗</a>
     </div>`;
   }

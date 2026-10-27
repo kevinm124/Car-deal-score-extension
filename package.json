@@ -6,6 +6,8 @@
   "scripts": {
     "test": "node --test tests/unit.test.js tests/data.test.js",
     "build:popularity": "python scriptsExtraction/build_popularity.py",
-    "build:icons": "python scriptsExtraction/make_icons.py"
+    "build:icons": "python scriptsExtraction/make_icons.py",
+    "coverage": "node tests/coverage.js",
+    "test:eu-live": "node tests/eu-live.js"
   }
 }
