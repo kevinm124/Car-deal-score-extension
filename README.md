@@ -2,6 +2,9 @@
 
 A Chrome/Edge extension that tells you whether a used car on [avto.net](https://www.avto.net) is a good deal and what to check before you buy it.
 
+> [!WARNING]
+> **DealScore is a guide, not advice.** It doesn't recommend buying or avoiding any car, and its scores, price estimates and known issues can be wrong. Always inspect the car, check its history and decide for yourself. See the [disclaimer](#disclaimer).
+
 ![DealScore on a real avto.net listing](Assets/screenshots/captur-overview.png)
 
 ## Features
@@ -137,4 +140,13 @@ The **EU market comparison** is the one feature that makes a network request: it
 
 ## Disclaimer
 
-DealScore is informational only. Scores and known issues are heuristics, not a guarantee about any specific car. Always get a pre-purchase inspection.
+DealScore is an informational tool only. It does not recommend, encourage or discourage buying any vehicle, and nothing it shows is professional, mechanical, legal or financial advice.
+
+- **Scores are heuristics.** The deal score, verdicts and "good deal" labels are automated estimates built from the listing text and general rules. They are not an assessment of any specific car.
+- **Prices are estimates.** Market values come from other asking prices (avto.net, AutoScout24) and reference data. They can be incomplete, out of date or wrong for a particular car.
+- **Known issues are general.** They describe problems reported for a model or engine in general. A specific car may have none of them, or may have problems that aren't listed.
+- **Listing data comes from the seller.** DealScore only reads what the listing says. It can't verify mileage, damage, service history or ownership.
+
+Before you buy, inspect the car in person, have an independent mechanic do a pre-purchase inspection and check the vehicle's history and documents. Any decision to buy, and its consequences, is yours alone. The software is provided "as is", without warranty of any kind, and the author is not liable for any loss or damage arising from its use.
+
+DealScore is not affiliated with or endorsed by avto.net or AutoScout24.

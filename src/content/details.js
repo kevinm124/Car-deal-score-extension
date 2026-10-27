@@ -150,7 +150,7 @@
       <div class="body">${tabBody()}</div>
       <div class="foot">
         <span>${sourceNote()}</span>
-        <span>Informational only</span>
+        <span title="DealScore doesn't recommend buying or avoiding any car. Scores, prices and known issues are estimates and can be wrong. Always inspect the car and check its history before you decide.">Guide only – not advice</span>
       </div>`;
 
     const pill = $('.pill');
