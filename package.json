@@ -1,7 +1,6 @@
 {
   "name": "dealscore-avtonet",
   "version": "1.0.0",
-  "private": true,
   "description": "DealScore – car deal analyzer browser extension for avto.net",
   "scripts": {
     "test": "node --test tests/unit.test.js tests/data.test.js",
@@ -9,5 +8,6 @@
     "build:icons": "python scriptsExtraction/make_icons.py",
     "coverage": "node tests/coverage.js",
     "test:eu-live": "node tests/eu-live.js"
-  }
+  },
+  "license": "MIT"
 }

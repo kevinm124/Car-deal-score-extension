@@ -138,3 +138,7 @@ The **EU market comparison** is the one feature that makes a network request: it
 ## Disclaimer
 
 DealScore is informational only. Scores and known issues are heuristics, not a guarantee about any specific car. Always get a pre-purchase inspection.
+
+## License
+
+[MIT](LICENSE) © 2026 Kevin Markoja. The license covers this project's code only – not avto.net's or AutoScout24's content, or the third-party registry data in `carDB/`.
