@@ -6,6 +6,7 @@
 //   gear  'dsg' | 'auto' | 'manual'
 //   eng   regex source matched against the listing title/variant ("1.2 PureTech")
 //   notEng regex that rules the issue out ("TSI" for the non-turbo 1.2)
+//   engRequired  the eng pattern must match even if ccm does (engines sharing a displacement)
 //   hint  gearbox name ("DSG", "EDC"); without it a gearbox issue is only "possible"
 //   ccm   [[min, max], ...]    engine displacement ranges
 // sev: 1 = annoyance / cheap, 2 = notable repair, 3 = expensive or engine-threatening.
@@ -248,7 +249,7 @@ CDS.knownIssues = (() => {
       check: 'Smoke, DPF warning, timing-belt invoice.' }
   });
   Object.assign(BMW, {
-    n54: { id: 'bmw-n54-n55', y: [2007, 2016], fuel: ['petrol'], eng: '(1|3|4|5)35i|x[3456] ?(x|s)drive ?35i|z4 ?(s)?drive ?35i', ccm: [[2978, 2981]], sev: 2, cost: '€600–2,000',
+    n54: { id: 'bmw-n54-n55', y: [2007, 2016], fuel: ['petrol'], notEng: '\\bm[234]\\b', eng: '(1|3|4|5)35i|x[3456] ?(x|s)drive ?35i|z4 ?(s)?drive ?35i', ccm: [[2978, 2981]], sev: 2, cost: '€600–2,000',
       title: '3.0 turbo (N54/N55) fuel pump, wastegates and water pump', detail: 'High-pressure fuel pump, wastegate rattle (N54) and the electric water pump are known failures.',
       check: 'Long cranking, limp mode, rattle on lift-off; ask for water pump replacement.' },
     n43: { id: 'bmw-n43-n53', y: [2007, 2013], fuel: ['petrol'], eng: '(1|3|5)(16|18|20|23|25|30)i', ccm: [[1995, 1997], [2996, 2997]], sev: 2, cost: '€500–1,500',
@@ -279,6 +280,36 @@ CDS.knownIssues = (() => {
       title: '2.2 i-CTDi dual-mass flywheel & clutch', detail: 'Flywheel and clutch wear on Civic, Accord, CR-V and FR-V diesels.',
       check: 'Idle rattle, clutch slip.' }
   };
+
+  Object.assign(PSA, {
+    puretechChain: { id: 'psa-puretech-chain', positive: true, y: [2024, 2030], fuel: ['petrol', 'hybrid'], eng: 'pure ?tech|1[.,]2 ?(e-?)?thp|1[.,]2 ?turbo|1[.,]2 ?t\\b|1[.,]2 ?(100|110|130|136|145|155)', ccm: [[1196, 1200]],
+      title: '1.2 PureTech from 2024 uses a timing chain instead of the wet belt – the belt problem does not apply' }
+  });
+  Object.assign(HK, {
+    crdiR: { id: 'hk-crdi-r', y: [2009, 2020], fuel: ['diesel'], eng: '2[.,][02] ?crdi', ccm: [[1994, 1999], [2198, 2200]], sev: 2, cost: '€500–2,000',
+      title: '2.0/2.2 CRDi (R-engine) DPF, EGR and dual-mass flywheel', detail: 'Tucson/ix35/Sportage/Santa Fe/Sorento diesels clog the DPF and EGR on short trips; the dual-mass flywheel on manuals wears.',
+      check: 'Long test drive watching for DPF/engine lights; idle rattle that stops with the clutch pressed.' },
+    awd: { id: 'hk-awd', y: [2010, 2020], eng: '4wd|awd|4x4|htrac', sev: 1, cost: '€400–1,500',
+      title: 'AWD coupling and rear-diff oil', detail: 'The electronic AWD coupling and rear differential need fluid changes; neglected ones whine or stop engaging.',
+      check: 'Whine from the rear, AWD warning light; ask when the coupling/diff oil was changed.' }
+  });
+  Object.assign(MB, {
+    g9: { id: 'mb-9g', y: [2014, 2024], gear: 'auto', hint: '9g', sev: 1, cost: '€300 service / €1,500+ valve body',
+      title: '9G-Tronic harsh or delayed shifts', detail: 'Some 9G-Tronic gearboxes shift harshly; usually fixed by software and an oil service (often skipped).',
+      check: 'Feel for clunky 1–2 and 2–3 shifts; ask for gearbox oil service and software updates.' },
+    om654: { id: 'mb-om654-good', positive: true, y: [2016, 2030], fuel: ['diesel'], ccm: [[1949, 1951]],
+      title: 'OM654 2.0 diesel (2016+) has a good reliability record so far' }
+  });
+  Object.assign(BMW, {
+    s55: { id: 'bmw-s55', engRequired: true, y: [2014, 2020], fuel: ['petrol'], eng: '\\bm[234]\\b', ccm: [[2978, 2981]], sev: 3, cost: '€2,500–6,000',
+      title: 'S55 (M2 Competition/M3/M4) crank-hub slip', detail: 'Under hard use the crankshaft hub can slip, shifting valve timing and potentially wrecking the engine. A pinned/upgraded hub is the usual fix.',
+      check: 'Ask if the crank hub was pinned; avoid cars with timing-related fault codes.' },
+    mRunning: { id: 'bmw-m-running', y: [2000, 2030], eng: '\\bm[2-8]\\b|\\bm(135|140|235|240|340|440|550)i?\\b', sev: 1, cost: '€2,000+/year',
+      title: 'High running costs: brakes, tyres and oil services', detail: 'M cars wear out expensive brakes and tyres quickly; track days multiply it. Not a fault – a budget item.',
+      check: 'Measure disc/pad thickness and tyre tread; ask about track use and oil-change intervals.' },
+    s58: { id: 'bmw-s58-good', positive: true, engRequired: true, y: [2021, 2030], fuel: ['petrol'], eng: '\\bm[234]\\b', ccm: [[2992, 2994]],
+      title: 'S58 engine (2021+ M2/M3/M4) has a good record so far' }
+  });
 
   // ---------- Volvo ----------
   const VOLVO = {
@@ -509,10 +540,10 @@ CDS.knownIssues = (() => {
       { id: 'mb-7gdct', y: [2012, 2024], gear: 'auto', hint: '7g-?dct|dct', sev: 2, cost: '€800–2,000', title: '7G-DCT dual-clutch judder', detail: 'Hesitation and judder, mechatronic faults on 7G-DCT.', check: 'Pull-away and parking manoeuvres.' }],
     'MERCEDES BENZ B': 'MERCEDES BENZ A',
     'MERCEDES BENZ CLA': 'MERCEDES BENZ A',
-    'MERCEDES BENZ C': [MB.om651, MB.om646, MB.m271, MB.g7, MB.rust],
+    'MERCEDES BENZ C': [MB.om651, MB.om646, MB.m271, MB.m270, MB.g7, MB.g9, MB.om654, MB.rust],
     'MERCEDES BENZ E': [MB.om651, MB.om646, MB.m271, MB.g7, MB.rust,
       { id: 'mb-sbc', y: [2002, 2006], sev: 3, cost: '€1,000–2,000', title: 'SBC brake system (W211)', detail: 'Sensotronic brake control pump has a limited life and fails.', check: 'SBC warning on the dash; ask whether the SBC unit was replaced.' }],
-    'MERCEDES BENZ GLC': [MB.om651, MB.g7],
+    'MERCEDES BENZ GLC': [MB.om651, MB.g7, MB.g9, MB.om654],
     'MERCEDES BENZ GLK': [MB.om651, MB.g7],
     'MERCEDES BENZ ML': [MB.g7, MB.rust, { id: 'ml-air', y: [2005, 2015], sev: 2, cost: '€500–1,500', title: 'Airmatic suspension and transfer case', detail: 'Air-suspension leaks and transfer case wear.', check: 'Car sits level after standing; no clunks on tight turns.' }],
     'MERCEDES BENZ VITO': [MB.om651, MB.om646, MB.rust],
@@ -528,11 +559,11 @@ CDS.knownIssues = (() => {
 
     'HYUNDAI I30': [HK.gdi16, HK.crdi, HK.dct, HK.spring],
     'HYUNDAI I20': [HK.crdi, GOOD('Generally dependable')],
-    'HYUNDAI IX35': [HK.gdi16, HK.crdi],
-    'HYUNDAI TUCSON': [HK.gdi16, HK.crdi, HK.dct],
+    'HYUNDAI IX35': [HK.gdi16, HK.crdi, HK.crdiR, HK.awd],
+    'HYUNDAI TUCSON': [HK.gdi16, HK.crdi, HK.crdiR, HK.awd, HK.dct],
     'HYUNDAI KONA': [HK.dct, { id: 'kona-ev', y: [2018, 2020], fuel: ['electric'], sev: 2, cost: 'recall', title: 'Kona Electric battery recall', detail: 'Early Kona Electric batteries were recalled for fire risk (cell replacement).', check: 'Confirm battery recall/replacement.' }],
     'KIA CEED': [HK.gdi16, HK.crdi, HK.dct, HK.spring],
-    'KIA SPORTAGE': [HK.gdi16, HK.crdi, HK.dct],
+    'KIA SPORTAGE': [HK.gdi16, HK.crdi, HK.crdiR, HK.awd, HK.dct],
     'KIA RIO': [HK.crdi, GOOD('Generally dependable')],
     'KIA PICANTO': [GOOD('Simple and reliable city car')],
     'KIA NIRO': [HK.dct, GOOD('Hybrid powertrain generally reliable')],
@@ -713,7 +744,97 @@ CDS.knownIssues = (() => {
     'BMW X4': 'BMW X3',
     'BMW X2': 'BMW X1',
     'MINI COUNTRYMAN': 'MINI COOPER',
-    'MINI CLUBMAN': 'MINI COOPER'
+    'MINI CLUBMAN': 'MINI COOPER',
+    'MINI CABRIO': 'MINI COOPER',
+    'MINI PACEMAN': 'MINI COOPER',
+
+    // ---- Models that had no data on live avto.net listings ----
+    'BMW M2': [BMW.s55, BMW.mRunning, BMW.s58],
+    'BMW M3': [BMW.s55, BMW.mRunning, BMW.s58],
+    'BMW M4': [BMW.s55, BMW.mRunning, BMW.s58],
+    'BMW M5': [BMW.mRunning, { id: 'bmw-s63', y: [2011, 2018], fuel: ['petrol'], eng: '\\bm5\\b|\\bm6\\b|x[56] ?m\\b', ccm: [[4394, 4396]], sev: 3, cost: '€2,000–8,000', title: 'S63 4.4 V8 oil consumption, rod bearings and turbo oil lines', detail: 'High oil use, rod-bearing wear and leaking turbo oil lines; very expensive to fix.', check: 'Oil consumption history, oil analysis, cold-start noises.' }],
+    'BMW X7': 'BMW X5',
+    'BMW IX3': [{ id: 'ix3-12v', y: [2021, 2024], sev: 1, cost: 'software', title: 'Software and 12V battery glitches', detail: 'Early cars needed software updates (charging, infotainment) and some had 12V battery drain.', check: 'Ask for the latest software update; test AC and DC charging.' }],
+    'AUDI Q8': 'AUDI Q7',
+    'AUDI SQ7': 'AUDI Q7',
+    'AUDI A7': 'AUDI A4',
+    'MERCEDES BENZ G': [MB.om642, MB.rust, { id: 'g-rust', y: [1990, 2017], sev: 2, cost: '€500–3,000', title: 'Body and frame rust (W463)', detail: 'Door bottoms, windscreen frame and chassis rust on older G-Class.', check: 'Inspect door bottoms, windscreen surround and frame.' }],
+    'MERCEDES BENZ GLB': 'MERCEDES BENZ A',
+    'MERCEDES BENZ EQC': [{ id: 'eqc-recall', y: [2019, 2022], fuel: ['electric'], sev: 1, cost: 'recall', title: 'Recalls: brake booster and charging software', detail: 'Several recalls (brake booster, high-voltage cable fixing); usually done under warranty.', check: 'Check open recalls with a Mercedes dealer.' }],
+    'HYUNDAI IONIQ 5': [{ id: 'e-gmp-iccu', y: [2021, 2024], fuel: ['electric'], sev: 2, cost: 'recall / €1,500+', title: 'ICCU (charging control unit) failure', detail: 'The Integrated Charging Control Unit can fail, stopping 12V charging and causing loss of power; recalled with a software fix and replacements.', check: 'Confirm the ICCU recall/software update was done; test AC charging.' }],
+    'HYUNDAI IONIQ 6': 'HYUNDAI IONIQ 5',
+    'KIA EV6': 'HYUNDAI IONIQ 5',
+    'GENESIS GV60': 'HYUNDAI IONIQ 5',
+    'HYUNDAI IONIQ': [TOY.cat, GOOD('Hybrid/EV powertrain has a good reliability record'), { id: 'ioniq-12v', y: [2016, 2022], sev: 1, cost: '€100–300', title: '12V battery drain', detail: 'The small 12V battery can run flat if the car stands for long.', check: 'Ask about 12V battery replacement.' }],
+    'HYUNDAI BAYON': 'HYUNDAI I20',
+    'HYUNDAI ELANTRA': 'HYUNDAI I30',
+    'HYUNDAI SONATA': 'HYUNDAI I30',
+    'HYUNDAI MATRIX': [HK.crdi, GOOD('Simple and durable')],
+    'KIA SOUL': [HK.gdi16, HK.crdi, HK.dct],
+    'KIA CARENS': [HK.gdi16, HK.crdi, HK.dct],
+    'KIA OPTIMA': [HK.gdi16, HK.crdi, HK.crdiR, HK.dct],
+    'KIA SORENTO': [HK.crdiR, HK.awd],
+    'KIA E-NIRO': 'KIA NIRO',
+    'VOLVO S90': 'VOLVO V60',
+    'VOLVO V90': 'VOLVO V60',
+    'JEEP WRANGLER': [{ id: 'wrangler-wobble', y: [2007, 2018], sev: 2, cost: '€300–1,500', title: '“Death wobble” front-axle shimmy', detail: 'Worn track bar, ball joints or steering damper cause violent front-end shimmy over bumps at speed.', check: 'Drive over bumps at 70–90 km/h; inspect track bar and ball joints.' },
+      { id: 'wrangler-28crd', y: [2007, 2018], fuel: ['diesel'], eng: '2[.,]8 ?crd', sev: 2, cost: '€600–2,000', title: '2.8 CRD (VM) EGR, DPF and oil cooler', detail: 'EGR/DPF clogging and oil-cooler leaks on the VM Motori diesel.', check: 'Smoke, DPF warnings, oil/coolant mixing.' }],
+    'JEEP GRAND': [{ id: 'gc-30crd', y: [2011, 2018], fuel: ['diesel'], eng: '3[.,]0 ?(crd|v6|multijet)', ccm: [[2986, 2988]], sev: 2, cost: '€800–2,500', title: '3.0 CRD (VM) oil-cooler leak and EGR', detail: 'Oil-cooler gasket leaks (oil into coolant) and EGR failures on the WK2 diesel.', check: 'Check coolant for oil, EGR fault codes.' },
+      { id: 'gc-air', y: [2011, 2021], sev: 2, cost: '€600–2,000', title: 'Quadra-Lift air suspension', detail: 'Air springs and the compressor fail with age.', check: 'Car level after standing; no suspension warnings.' }],
+    'JEEP GRAND CHEROKEE': 'JEEP GRAND',
+    'JEEP AVENGER': [PSA.puretech, PSA.puretechChain],
+    'JEEP PATRIOT': [FCA.mj2, { id: 'patriot-cvt', y: [2007, 2016], gear: 'auto', sev: 2, cost: '€1,500–3,000', title: 'CVT judder and failure', detail: 'The Jatco CVT overheats and judders.', check: 'Judder pulling away, whine.' }],
+    'MITSUBISHI SPACE': [GOOD('Simple, cheap to run')],
+    'MITSUBISHI SPACE STAR': 'MITSUBISHI SPACE',
+    'MITSUBISHI LANCER': [MIT.cvt, PSA.dw10, { id: 'lancer-rust', y: [2007, 2016], sev: 1, cost: '€200–800', title: 'Rear arch and sill rust', detail: 'Rust around rear arches and sills.', check: 'Inspect arches and sills.' }],
+    'MITSUBISHI ECLIPSE': [MIT.cvt, MIT.phev],
+    'MITSUBISHI L': [{ id: 'l200-frame', y: [2006, 2015], sev: 2, cost: '€500–3,000', title: 'L200 chassis rust and 2.5 DI-D timing belt', detail: 'The ladder frame rusts; the 2.5 DI-D needs timing-belt changes on schedule.', check: 'Inspect the frame; belt invoice.' }],
+    'MITSUBISHI L200': 'MITSUBISHI L',
+    'MITSUBISHI GRANDIS': [PSA.dw10, MIT.cvt],
+    'NISSAN NAVARA': [{ id: 'yd25', y: [2005, 2015], fuel: ['diesel'], eng: '2[.,]5 ?dci', sev: 2, cost: '€800–2,500', title: '2.5 dCi (YD25) timing chain and injectors', detail: 'Timing chain/guide wear and injector failures on the YD25 diesel.', check: 'Rattle on start, smoke, power loss.' },
+      { id: 'navara-frame', y: [2005, 2015], sev: 2, cost: 'recall / €1,000+', title: 'D40 chassis-frame corrosion', detail: 'Frames rusted badly on the D40 Navara; many were replaced under recall.', check: 'Inspect the frame; ask if it was replaced.' }],
+    'NISSAN PATHFINDER': 'NISSAN NAVARA',
+    'NISSAN TERRANO': [{ id: 'terrano-rust', y: [1993, 2006], sev: 2, cost: '€500–2,000', title: 'Old Terrano II rust and 2.7 TDi head', detail: 'Body/chassis rust; the 2.7 TDi can crack its cylinder head when overheated.', check: 'Rust underneath, coolant loss.' }],
+    'MAZDA CX-7': [MAZ.d22, { id: 'cx7-turbo', y: [2006, 2012], fuel: ['petrol'], eng: '2[.,]3', ccm: [[2259, 2262]], sev: 3, cost: '€1,500–4,000', title: '2.3 DISI turbo failure and timing chain', detail: 'The 2.3 turbo petrol burns oil, kills turbos and stretches its timing chain.', check: 'Blue smoke, turbo whistle, cold-start rattle.' }],
+    'MAZDA CX-60': [{ id: 'cx60-sw', y: [2022, 2024], sev: 1, cost: 'software', title: 'Early gearbox and software glitches', detail: 'Early cars had jerky low-speed shifting and infotainment bugs, improved by updates.', check: 'Ask for software updates; test slow-speed driving.' }],
+    'PEUGEOT 408': 'PEUGEOT 308',
+    'PEUGEOT TRAVELLER': 'CITROEN JUMPY',
+    'OPEL COMBO': [PSA.hdi16, PSA.bluehdi, PSA.puretech, PSA.puretechChain, OPEL.cdti13, FCA.mj2],
+    'OPEL FRONTERA': [PSA.puretechChain],
+    'RENAULT AUSTRAL': [{ id: 'austral-sw', y: [2022, 2024], sev: 1, cost: 'software', title: 'Early software and infotainment glitches', detail: 'Early cars needed updates for infotainment and hybrid system warnings.', check: 'Ask for the latest software update.' }],
+    'DACIA BIGSTER': 'DACIA DUSTER',
+    'SUZUKI S-CROSS': [FCA.mj2, GOOD('1.4 Boosterjet petrol is generally reliable')],
+    'SEAT CORDOBA': 'SEAT IBIZA',
+    'FIAT 500C': 'FIAT 500',
+    'FIAT 500L': [FCA.mj2, OPEL.cdti13, FCA.tct],
+    'FIAT CROMA': [OPEL.cdti19, FCA.jtdm24],
+    'FIAT ULYSSE': 'CITROEN JUMPY',
+    'FIAT SCUDO': 'CITROEN JUMPY',
+    'LANCIA YPSILON': 'FIAT PANDA',
+    'LANCIA DELTA': 'FIAT BRAVO',
+    'ALFA ROMEO BRERA': 'ALFA ROMEO 159',
+    'ALFA ROMEO SPIDER': 'ALFA ROMEO 159',
+    'ALFA ROMEO TONALE': [{ id: 'tonale-sw', y: [2022, 2024], sev: 1, cost: 'software', title: 'Early software glitches', detail: 'Infotainment and driver-assist software updates on early cars.', check: 'Ask for the latest updates.' }],
+    'LAND ROVER DEFENDER': [JLR.ingenium, { id: 'defender-new', y: [2020, 2024], sev: 1, cost: 'software / €500+', title: 'New Defender electronics and air-suspension faults', detail: 'Early L663 cars had infotainment, sensor and air-suspension faults, many fixed by updates.', check: 'Test all electronics; car level after standing.' },
+      { id: 'defender-old', y: [1990, 2016], sev: 2, cost: '€500–5,000', title: 'Classic Defender chassis and bulkhead rust', detail: 'The chassis and steel bulkhead rust; Td5 injector loom leaks oil.', check: 'Inspect chassis rear crossmember and bulkhead footwells.' }],
+    'CHEVROLET TRAX': 'OPEL MOKKA',
+    'CHEVROLET EPICA': [{ id: 'epica-rust', y: [2006, 2011], sev: 1, cost: '€300–800', title: '2.0 VCDi EGR/DPF and gearbox', detail: 'EGR/DPF clogging on the diesel; automatic gearbox faults.', check: 'Smoke, harsh shifts.' }],
+    'FORD MUSTANG': [{ id: 'mustang-10r', y: [2018, 2024], gear: 'auto', sev: 1, cost: 'software', title: '10-speed automatic harsh shifts', detail: 'The 10R80 can shift harshly; improved by software and adaptive relearn.', check: 'Test low-speed shifts.' }],
+    'FORD PUMA': [FORD.ecoboost1],
+    'FORD KA': [OPEL.cdti13, GOOD('Simple and cheap to run')],
+    'FORD RANGER': [FORD.tdci20, { id: 'ranger-32', y: [2011, 2022], fuel: ['diesel'], eng: '3[.,]2', ccm: [[3197, 3199]], sev: 2, cost: '€300–1,500', title: '3.2 TDCi oil-pump/injector and EGR cooler', detail: 'EGR cooler leaks and injector issues on the 3.2 five-cylinder.', check: 'Coolant loss, smoke.' }],
+    'TOYOTA GR': [GOOD('Toyota GR models are generally robust – budget for performance tyres and brakes')],
+    'TOYOTA YARIS CROSS': 'TOYOTA YARIS',
+    'TOYOTA COROLLA CROSS': 'TOYOTA COROLLA',
+    'TOYOTA BZ4X': [{ id: 'bz4x-charge', y: [2022, 2024], fuel: ['electric'], sev: 1, cost: 'software', title: 'Slow DC charging in the cold', detail: 'DC charging speed drops sharply in cold weather; early cars had a wheel-hub recall.', check: 'Confirm the hub-bolt recall was done.' }],
+    'HONDA CRX': [GOOD('Simple mechanics; check for rust on old cars')],
+    'HONDA HR-V': [GOOD('Generally very reliable')],
+    'SUBARU JUSTY': [GOOD('Simple small car')],
+    'SKODA ENYAQ': [{ id: 'enyaq-sw', y: [2020, 2023], fuel: ['electric'], sev: 1, cost: 'software', title: 'Early software and 12V battery issues', detail: 'Early MEB cars needed software updates and some had 12V battery drain.', check: 'Software version 3.x or later; test charging.' }],
+    'VOLKSWAGEN ID.4': 'SKODA ENYAQ',
+    'VOLKSWAGEN ID.5': 'SKODA ENYAQ',
+    'AUDI Q4': 'SKODA ENYAQ',
+    'CUPRA BORN': 'VOLKSWAGEN ID.3'
   };
 
   // Brands each shared engine family appears in (shared engines cross brands).
@@ -740,7 +861,8 @@ CDS.knownIssues = (() => {
     'psa-dv6': ['FORD', 'VOLVO', 'MAZDA', 'MINI', 'SUZUKI'],
     'psa-dw10': ['FORD', 'VOLVO', 'MITSUBISHI', 'FIAT', 'LANCIA'],
     'psa-bluehdi': ['OPEL'],
-    'psa-puretech': ['OPEL', 'FIAT'],
+    'psa-puretech': ['OPEL', 'FIAT', 'JEEP'],
+    'psa-puretech-chain': ['OPEL', 'FIAT', 'JEEP'],
     'psa-thp': ['MINI'],
     'rn-k9k': ['MERCEDES BENZ', 'SUZUKI'],
     'rn-f9q': ['SUZUKI', 'VOLVO'],
@@ -790,6 +912,8 @@ CDS.knownIssues = (() => {
       const engHit = it.eng ? new RegExp(it.eng, 'i').test(hay) : false;
       const ccmHit = it.ccm && car.ccm ? it.ccm.some(([a, b]) => car.ccm >= a && car.ccm <= b) : false;
       if (it.ccm && car.ccm && !ccmHit) return null;
+      // Some engines share a displacement with others (S55 vs N55): the name must match too.
+      if (it.engRequired && !engHit) return null;
       if (!engHit && !ccmHit) {
         // Engine is known and doesn't match -> skip. Unknown engine -> "possible".
         if (car.ccm || /\b\d[.,]\d\b/.test(hay)) return null;
@@ -812,7 +936,12 @@ CDS.knownIssues = (() => {
     const positives = [];
     const seen = new Set();
     for (const it of list || []) {
-      if (it.positive) { positives.push(it.title); continue; }
+      if (it.positive) {
+        // Unconditional praise, or praise tied to a specific engine/year ("chain from 2024").
+        const conditional = it.y || it.fuel || it.eng || it.ccm || it.gear;
+        if (!conditional || statusFor(it, car, hay) === 'likely') positives.push(it.title);
+        continue;
+      }
       const status = statusFor(it, car, hay);
       if (!status) continue;
       seen.add(it.id);
@@ -829,6 +958,7 @@ CDS.knownIssues = (() => {
       if (!hasEvidence) continue;
       if (statusFor(item, car, hay) !== 'likely') continue;
       seen.add(item.id);
+      if (item.positive) { if (!positives.includes(item.title)) positives.push(item.title); continue; }
       items.push({ ...item, status: 'likely', fromFamily: true });
     }
 
